@@ -1,11 +1,14 @@
 import React from "react";
-import logo from "../../public/assets/logo.png";
+// FIX: Changed relative path to absolute public path for consistency in Vite
+import logo from "/assets/logo.png";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase/firebase";
-import { RiArrowDownSFill, RiBardLine, RiChatAiFill, RiChatAiLine, RiFile4Line, RiFolderUserLine, RiNotificationLine, RiShutDownLine } from "react-icons/ri";
+import { RiArrowDownSFill, RiBardLine, RiChatAiLine, RiFile4Line, RiFolderUserLine, RiNotificationLine, RiShutDownLine } from "react-icons/ri";
+
 const Navlinks = () => {
     const handleLogout = async () => {
         try {
+            // This button *should* sign out the user
             await signOut(auth);
         } catch (error) {
             console.log(error);
@@ -22,31 +25,37 @@ const Navlinks = () => {
 
                 <ul className="flex lg:flex-col flex-row items-center gap-7 md:gap-10 px-2 md:px-0">
                     <li className="">
+                        {/* Placeholder button (no onClick handler) */}
                         <button className="lg:text-[28px] text-[22px] cursor-pointer">
                             <RiChatAiLine color="#fff" />
                         </button>
                     </li>
                     <li className="">
+                        {/* Placeholder button (no onClick handler) */}
                         <button className="lg:text-[28px] text-[22px] cursor-pointer">
                             <RiFolderUserLine color="#fff" />
                         </button>
                     </li>
                     <li className="">
+                        {/* Placeholder button (no onClick handler) */}
                         <button className="lg:text-[28px] text-[22px] cursor-pointer">
                             <RiNotificationLine color="#fff" />
                         </button>
                     </li>
                     <li className="">
+                        {/* Placeholder button (no onClick handler) */}
                         <button className="lg:text-[28px] text-[22px] cursor-pointer">
                             <RiFile4Line color="#fff" />
                         </button>
                     </li>
                     <li className="">
+                        {/* Placeholder button (no onClick handler) */}
                         <button className="lg:text-[28px] text-[22px] cursor-pointer">
                             <RiBardLine color="#fff" />
                         </button>
                     </li>
                     <li className="">
+                        {/* Functional Sign Out button */}
                         <button onClick={handleLogout} className="lg:text-[28px] text-[22px] cursor-pointer">
                             <RiShutDownLine color="#fff" />
                         </button>

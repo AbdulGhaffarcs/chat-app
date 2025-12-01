@@ -1,7 +1,8 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
-import { addDoc, collection, doc, getDoc ,onSnapshot, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { addDoc, collection, doc, getDoc, onSnapshot, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAH5XJJ1Dlyb84MONrLiU5OvCWQ29I8NtM",
@@ -15,6 +16,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app);
 
 export const  listenForChats = (setChats) => {
     // FIX: Corrected misspelled 'collecion' to 'collection' and proper onSnapshot usage
@@ -81,4 +83,5 @@ export const listenForMessages = (chatId, setMessages) => {
 };
 
 
-export { auth, db };
+
+export { auth, db, storage, ref, uploadBytes, getDownloadURL };

@@ -15,13 +15,36 @@ const Login = ({ isLogin, setIsLogin }) => {
         }));
     };
 
-    const handleAuth = async () => {
+    const handleAuth = async (e) => {
+        e.preventDefault();
+        
+        const email = userData?.email?.trim();
+        const password = userData?.password?.trim();
+        
+        // Validate inputs
+        if (!email || !password) {
+            alert("Email and password are required");
+            return;
+        }
+        
         setIsLoading(true);
         try {
-            await signInWithEmailAndPassword(auth, userData?.email, userData?.password);
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            console.log("Login successful:", userCredential.user);
+            // Navigation will happen via onAuthStateChanged in App.jsx
         } catch (error) {
-            console.log(error);
-            alert(error.message);
+            console.error("Login error:", error.code, error.message);
+            
+            // Show specific error messages
+            if (error.code === "auth/user-not-found") {
+                alert("User not found. Please register first.");
+            } else if (error.code === "auth/wrong-password") {
+                alert("Incorrect password.");
+            } else if (error.code === "auth/invalid-email") {
+                alert("Invalid email format.");
+            } else {
+                alert(error.message);
+            }
         } finally {
             setIsLoading(false);
         }

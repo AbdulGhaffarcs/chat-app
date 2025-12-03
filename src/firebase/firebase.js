@@ -1,9 +1,8 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
-// ADDED: Import Storage functions
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { addDoc, collection, doc, getDoc ,onSnapshot, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
+import { addDoc, collection, doc, getDoc ,onSnapshot, serverTimestamp, setDoc, updateDoc, deleteDoc, getDocs, writeBatch } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAH5XJJ1Dlyb84MONrLiU5OvCWQ29I8NtM",
@@ -17,21 +16,37 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-// ADDED: Initialize Firebase Storage
 const storage = getStorage(app);
 
-// NEW FUNCTION: Uploads a file to Firebase Storage for chat attachments
+// NEW FUNCTION: Deletes a specific message document
+export const deleteMessage = async (chatId, messageId) => {
+    const messageRef = doc(db, "chats", chatId, "messages", messageId);
+    await deleteDoc(messageRef);
+};
+
+export const deleteChatAndMessages = async (chatId) => {
+    const chatRef = doc(db, "chats", chatId);
+    const messagesRef = collection(db, "chats", chatId, "messages");
+    const snapshot = await getDocs(messagesRef);
+    
+    const batch = writeBatch(db);
+
+    snapshot.docs.forEach((doc) => {
+        batch.delete(doc.ref);
+    });
+    
+    batch.delete(chatRef);
+
+    await batch.commit();
+};
+
 export const uploadChatAttachment = async (file, chatId) => {
     const fileExtension = file.name.split('.').pop();
-    // Use a path like chats/CHAT_ID/TIMESTAMP.EXT
     const path = `chats/${chatId}/${Date.now()}.${fileExtension}`;
     
     const attachmentRef = ref(storage, path);
     
-    // 1. Upload the file
     const snapshot = await uploadBytes(attachmentRef, file);
-    
-    // 2. Get the permanent public download URL
     const url = await getDownloadURL(snapshot.ref);
     
     return { url, type: file.type.startsWith('image/') ? 'image' : 'file' };
@@ -58,7 +73,6 @@ export const  listenForChats = (setChats) => {
 
 } 
 
-// MODIFIED FUNCTION: Accepts attachment details
 export const sendMessage = async (messageText, chatId, user1, user2, attachment = {}) => {
     const chatRef = doc(db, "chats", chatId);
 
@@ -73,7 +87,6 @@ export const sendMessage = async (messageText, chatId, user1, user2, attachment 
 
     const chatDoc = await getDoc(chatRef);
     
-    // Determine the last message content for the chat list preview
     const lastMessage = attachment.url ? (attachment.type === 'image' ? "Sent an image" : "Sent a file") : messageText;
 
     if (!chatDoc.exists()) {
@@ -97,11 +110,9 @@ export const sendMessage = async (messageText, chatId, user1, user2, attachment 
         timestamp: serverTimestamp(),
     };
     
-    //  Include attachment if present
     if (attachment.url) {
         messagePayload.fileURL = attachment.url;
         messagePayload.fileType = attachment.type;
-        // If file, clear text unless there's an actual caption
         if (attachment.type !== 'image' && !messageText.trim()) {
             messagePayload.text = "";
         }
@@ -110,10 +121,14 @@ export const sendMessage = async (messageText, chatId, user1, user2, attachment 
     await addDoc(messageRef, messagePayload);
 };
 
+// MODIFIED FUNCTION: Now includes the document ID
 export const listenForMessages = (chatId, setMessages) => {
     const chatRef = collection(db, "chats", chatId, "messages");
     onSnapshot(chatRef, (snapshot) => {
-        const messages = snapshot.docs.map((doc) => doc.data());
+        const messages = snapshot.docs.map((doc) => ({
+            id: doc.id, // Include the message ID
+            ...doc.data()
+        }));
         setMessages(messages);
     });
 };

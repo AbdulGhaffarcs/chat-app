@@ -40,7 +40,8 @@ const App = () => {
             <div className="flex lg:flex-row flex-col items-start w-[100%]">
                 <Navlinks setCurrentScreen={setCurrentScreen} />
                 <Chatlist setSelectedUser={setSelectedUser} />
-                <Chatbox selectedUser={selectedUser} />
+                {/* MODIFIED: Pass onChatDeleted prop to reset selectedUser */}
+                <Chatbox selectedUser={selectedUser} onChatDeleted={() => setSelectedUser(null)} />
             </div>
         );
     };

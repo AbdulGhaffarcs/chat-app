@@ -1,71 +1,19 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { formatTimestamp } from "../utils/formatTimestamp";
+// ADDED: Icon for attachments
 import { RiSendPlaneFill, RiAttachmentLine, RiCloseLine } from "react-icons/ri";
 import { FaFileAlt } from "react-icons/fa";
+// MODIFIED: Use new upload function
 import { auth, listenForMessages, sendMessage, uploadChatAttachment } from "../firebase/firebase";
 import logo from "/assets/logo.png";
 
 
 const defaultAvatar = "/assets/user.jpg";
 
-// NEW FUNCTION: Client-side image compression using Canvas API
-const compressImage = (file, { quality = 0.7, maxWidth = 1024, maxHeight = 1024, mimeType = 'image/jpeg' }) => {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onerror = (error) => reject(error);
-        
-        reader.onload = (event) => {
-            const img = new Image();
-            img.src = event.target.result;
-
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                
-                let width = img.width;
-                let height = img.height;
-                
-                // Calculate proportional dimensions for resizing
-                if (width > height) {
-                    if (width > maxWidth) {
-                        height *= maxWidth / width;
-                        width = maxWidth;
-                    }
-                } else {
-                    if (height > maxHeight) {
-                        width *= maxHeight / height;
-                        height = maxHeight;
-                    }
-                }
-                
-                canvas.width = width;
-                canvas.height = height;
-                
-                ctx.drawImage(img, 0, 0, width, height);
-                
-                // Convert canvas to Blob (compressed image data)
-                canvas.toBlob((blob) => {
-                    if (!blob) {
-                        return reject(new Error("Canvas compression failed."));
-                    }
-                    // Recreate the file object with compressed data
-                    const compressedFile = new File([blob], file.name.replace(/\.(png|gif)$/i, '.jpeg'), {
-                        type: mimeType,
-                        lastModified: Date.now(),
-                    });
-                    resolve(compressedFile);
-                }, mimeType, quality);
-            };
-            img.onerror = (error) => reject(error);
-        };
-    });
-};
-
-
 const Chatbox = ({ selectedUser }) => {
     const [messages, setMessages] = useState([]);
     const [messageText, sendMessageText] = useState("");
+    // NEW: State for attachment management
     const [attachmentFile, setAttachmentFile] = useState(null);
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef(null);
@@ -95,38 +43,15 @@ const Chatbox = ({ selectedUser }) => {
         });
     }, [messages]);
     
-    // Handlers for file selection
+    // NEW: Handlers for file selection
     const handleAttachmentClick = () => {
         fileInputRef.current.click();
     };
 
-    // MODIFIED: Intercepts image upload for compression
-    const handleFileChange = async (e) => {
-        const originalFile = e.target.files[0];
-        if (!originalFile) return;
-
-        // Use isUploading to block UI during client-side processing
-        setIsUploading(true); 
-
-        // Check if file is an image and compress/resize
-        if (originalFile.type.startsWith('image/')) {
-            try {
-                const compressedImage = await compressImage(originalFile, { 
-                    quality: 0.7, 
-                    maxWidth: 1024,
-                    maxHeight: 1024,
-                });
-                setAttachmentFile(compressedImage);
-            } catch (error) {
-                console.error("Image compression failed:", error);
-                alert("Image compression failed. Please try a different file.");
-                setAttachmentFile(null);
-            }
-        } else {
-            // Handle non-image files directly
-            setAttachmentFile(originalFile);
+    const handleFileChange = (e) => {
+        if (e.target.files[0]) {
+            setAttachmentFile(e.target.files[0]);
         }
-        setIsUploading(false); // Done processing
     };
 
     const handleRemoveAttachment = () => {
@@ -140,7 +65,7 @@ const Chatbox = ({ selectedUser }) => {
     const handleSendMessage = async (e) => {
         e.preventDefault();
         
-        // Ensure either text or an attachment is present and not currently processing
+        // Ensure either text or an attachment is present
         if (!messageText.trim() && !attachmentFile) return;
         if (isUploading) return;
         
@@ -173,7 +98,7 @@ const Chatbox = ({ selectedUser }) => {
         }
     };
 
-    // Renders attachment preview in the message bubble
+    // NEW COMPONENT: Renders attachment preview in the message bubble
     const renderMessageContent = (msg) => {
         if (msg.fileURL) {
             if (msg.fileType === 'image') {
@@ -260,9 +185,9 @@ const Chatbox = ({ selectedUser }) => {
                                 <span className="flex items-center gap-3 text-sm text-gray-700">
                                     <FaFileAlt size={18} className="text-[#01AA85]" />
                                     {attachmentFile.name} 
-                                    {isUploading && <span className="text-xs text-blue-500">(Processing...)</span>}
+                                    {isUploading && <span className="text-xs text-blue-500">(Uploading...)</span>}
                                 </span>
-                                <button type="button" onClick={handleRemoveAttachment} className="text-red-500 hover:text-red-700" disabled={isUploading}>
+                                <button onClick={handleRemoveAttachment} className="text-red-500 hover:text-red-700">
                                     <RiCloseLine size={24} />
                                 </button>
                             </div>
@@ -270,7 +195,7 @@ const Chatbox = ({ selectedUser }) => {
                         
                         <div className={`sticky lg:bottom-0 bottom-[60px] p-3 h-fit w-[100%] ${attachmentFile ? 'pt-16' : ''}`}>
                             <form onSubmit={handleSendMessage} action="" className="flex items-center bg-white h-[45px] w-[100%] px-2 rounded-lg relative shadow-lg">
-                                {/* Hidden File Input */}
+                                {/* Hidden File Input (NEW) */}
                                 <input
                                     type="file"
                                     ref={fileInputRef}
@@ -278,7 +203,7 @@ const Chatbox = ({ selectedUser }) => {
                                     style={{ display: 'none' }}
                                 />
                                 
-                                {/* Attachment Button */}
+                                {/* Attachment Button (NEW) */}
                                 <button type="button" onClick={handleAttachmentClick} className="p-2 text-[#01AA85] hover:text-[#019379] disabled:opacity-50" disabled={isUploading}>
                                     <RiAttachmentLine size={20} />
                                 </button>

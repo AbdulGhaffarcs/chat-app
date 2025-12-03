@@ -1,8 +1,9 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+// ADDED: Import Storage functions
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { addDoc, collection, doc, getDoc, onSnapshot, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
+import { addDoc, collection, doc, getDoc ,onSnapshot, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAH5XJJ1Dlyb84MONrLiU5OvCWQ29I8NtM",
@@ -16,10 +17,28 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+// ADDED: Initialize Firebase Storage
 const storage = getStorage(app);
 
+// NEW FUNCTION: Uploads a file to Firebase Storage for chat attachments
+export const uploadChatAttachment = async (file, chatId) => {
+    const fileExtension = file.name.split('.').pop();
+    // Use a path like chats/CHAT_ID/TIMESTAMP.EXT
+    const path = `chats/${chatId}/${Date.now()}.${fileExtension}`;
+    
+    const attachmentRef = ref(storage, path);
+    
+    // 1. Upload the file
+    const snapshot = await uploadBytes(attachmentRef, file);
+    
+    // 2. Get the permanent public download URL
+    const url = await getDownloadURL(snapshot.ref);
+    
+    return { url, type: file.type.startsWith('image/') ? 'image' : 'file' };
+};
+
+
 export const  listenForChats = (setChats) => {
-    // FIX: Corrected misspelled 'collecion' to 'collection' and proper onSnapshot usage
     const chatsRef = collection(db , "chats"); 
     const unsubscribe = onSnapshot(chatsRef, (snapshot) => {
         const chatList = snapshot.docs.map((doc ) => ({
@@ -29,7 +48,6 @@ export const  listenForChats = (setChats) => {
     
     const currentUserEmail = auth.currentUser?.email;
 
-    // FIX: Added null check for auth.currentUser to prevent runtime error on sign out
     const filteredChats = currentUserEmail
         ? chatList.filter((chat) => chat.users.some((user) => user.email === currentUserEmail))
         : [];
@@ -40,7 +58,8 @@ export const  listenForChats = (setChats) => {
 
 } 
 
-export const sendMessage = async (messageText, chatId, user1, user2) => {
+// MODIFIED FUNCTION: Accepts attachment details
+export const sendMessage = async (messageText, chatId, user1, user2, attachment = {}) => {
     const chatRef = doc(db, "chats", chatId);
 
     const user1Doc = await getDoc(doc(db, "users", user1));
@@ -53,27 +72,44 @@ export const sendMessage = async (messageText, chatId, user1, user2) => {
     const user2Data = user2Doc.data();
 
     const chatDoc = await getDoc(chatRef);
+    
+    // Determine the last message content for the chat list preview
+    const lastMessage = attachment.url ? (attachment.type === 'image' ? "Sent an image" : "Sent a file") : messageText;
+
     if (!chatDoc.exists()) {
         await setDoc(chatRef, {
             users: [user1Data, user2Data],
-            lastMessage: messageText,
+            lastMessage: lastMessage,
             lastMessageTimestamp: serverTimestamp(),
         });
     } else {
         await updateDoc(chatRef, {
-            lastMessage: messageText,
+            lastMessage: lastMessage,
             lastMessageTimestamp: serverTimestamp(),
         });
     }
 
     const messageRef = collection(db, "chats", chatId, "messages");
 
-    await addDoc(messageRef, {
+    const messagePayload = {
         text: messageText,
         sender: auth.currentUser.email,
         timestamp: serverTimestamp(),
-    });
+    };
+    
+    //  Include attachment if present
+    if (attachment.url) {
+        messagePayload.fileURL = attachment.url;
+        messagePayload.fileType = attachment.type;
+        // If file, clear text unless there's an actual caption
+        if (attachment.type !== 'image' && !messageText.trim()) {
+            messagePayload.text = "";
+        }
+    }
+    
+    await addDoc(messageRef, messagePayload);
 };
+
 export const listenForMessages = (chatId, setMessages) => {
     const chatRef = collection(db, "chats", chatId, "messages");
     onSnapshot(chatRef, (snapshot) => {
@@ -81,7 +117,6 @@ export const listenForMessages = (chatId, setMessages) => {
         setMessages(messages);
     });
 };
-
 
 
 export { auth, db, storage, ref, uploadBytes, getDownloadURL };

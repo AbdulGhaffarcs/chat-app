@@ -18,7 +18,6 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-// NEW FUNCTION: Deletes a specific message document
 export const deleteMessage = async (chatId, messageId) => {
     const messageRef = doc(db, "chats", chatId, "messages", messageId);
     await deleteDoc(messageRef);
@@ -121,12 +120,11 @@ export const sendMessage = async (messageText, chatId, user1, user2, attachment 
     await addDoc(messageRef, messagePayload);
 };
 
-// MODIFIED FUNCTION: Now includes the document ID
 export const listenForMessages = (chatId, setMessages) => {
     const chatRef = collection(db, "chats", chatId, "messages");
     onSnapshot(chatRef, (snapshot) => {
         const messages = snapshot.docs.map((doc) => ({
-            id: doc.id, // Include the message ID
+            id: doc.id, 
             ...doc.data()
         }));
         setMessages(messages);

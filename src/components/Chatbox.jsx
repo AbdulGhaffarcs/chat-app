@@ -67,7 +67,6 @@ const Chatbox = ({ selectedUser, onChatDeleted }) => {
     const fileInputRef = useRef(null);
     const scrollRef = useRef(null);
 
-    // MODIFIED STATE: Stores message data and click position for the menu
     const [contextMenuMsg, setContextMenuMsg] = useState(null); 
     
     const chatId = auth?.currentUser?.uid < selectedUser?.uid ? `${auth?.currentUser?.uid}-${selectedUser?.uid}` : `${selectedUser?.uid}-${auth?.currentUser?.uid}`;
@@ -94,16 +93,13 @@ const Chatbox = ({ selectedUser, onChatDeleted }) => {
         });
     }, [messages]);
     
-    // NEW HANDLER: Captures message and position
     const handleContextMenuOpen = (e, msg) => {
-        e.preventDefault(); // Prevent text selection/default context menu
+        e.preventDefault();
         
-        // Calculate position relative to the viewport
         const rect = e.currentTarget.getBoundingClientRect();
         
-        // Use clientY and clientX relative to the chat area
         const x = rect.left + rect.width / 2;
-        const y = rect.top - 10;// Adjust for scroll position;
+        const y = rect.top;
 
         if (msg.id) {
             setContextMenuMsg({
@@ -149,30 +145,28 @@ const Chatbox = ({ selectedUser, onChatDeleted }) => {
         const originalFile = e.target.files[0];
         if (!originalFile) return;
 
-        if (originalFile.type.startsWith('image/')) {
-            if (originalFile.size > 512000) { 
-                setIsUploading(true); 
-                try {
-                    const compressedImage = await compressImage(originalFile, { 
-                        quality: 0.7, 
-                        maxWidth: 1024,
-                        maxHeight: 1024,
-                    });
-                    setAttachmentFile(compressedImage);
-                } catch (error) {
-                    console.error("Image compression failed:", error);
-                    alert("Image compression failed. Please try a different file.");
-                    setAttachmentFile(null);
-                } finally {
-                    setIsUploading(false);
-                }
+        setIsUploading(true);
+
+        try {
+            if (originalFile.type.startsWith('image/')) {
+                const compressedImage = await compressImage(originalFile, { 
+                    quality: 0.7, 
+                    maxWidth: 1024,
+                    maxHeight: 1024,
+                });
+                setAttachmentFile(compressedImage);
             } else {
                 setAttachmentFile(originalFile);
             }
-        } else {
-            setAttachmentFile(originalFile);
+        } catch (error) {
+            console.error("File processing failed:", error);
+            alert("File processing failed. Please try a different file.");
+            setAttachmentFile(null);
+        } finally {
+            setIsUploading(false); 
         }
     };
+
 
     const handleRemoveAttachment = () => {
         setAttachmentFile(null);
@@ -256,7 +250,6 @@ const Chatbox = ({ selectedUser, onChatDeleted }) => {
         return <h4>{msg.text}</h4>;
     };
 
-    // NEW FUNCTION: Renders the Context Menu Popover (positioned absolutely)
     const renderContextMenu = () => {
         if (!contextMenuMsg) return null;
 
@@ -265,11 +258,11 @@ const Chatbox = ({ selectedUser, onChatDeleted }) => {
         return (
             <div className="fixed inset-0 z-50" onClick={handleContextMenuClose}>
                 <div 
-                    className="absolute bg-white rounded-xl shadow-2xl p-2 w-56"
+                    className="absolute bg-white rounded-xl shadow-2xl p-2 w-56 transform -translate-y-full"
                     style={{ 
                         left: `${x}px`,
                         top: `${y}px`,
-                        transform: `translate(-50%, 10px)` // Show below the click point (was -110% before)
+                        transform: `translate(-50%, -110%)`
                     }}
                     onClick={(e) => e.stopPropagation()}
                 >
@@ -282,7 +275,7 @@ const Chatbox = ({ selectedUser, onChatDeleted }) => {
                             <RiFileCopyLine size={20} className="mr-3" /> Copy
                         </li>
                         
-                        <li className="flex items-center p-2 hover:bg-gray-100 cursor-pointer text-gray-500">
+                         <li className="flex items-center p-2 hover:bg-gray-100 cursor-pointer text-gray-500">
                             <RiReplyLine size={20} className="mr-3" /> Reply (Stub)
                         </li>
                         
@@ -300,7 +293,7 @@ const Chatbox = ({ selectedUser, onChatDeleted }) => {
 
     return (
         <>
-            {renderContextMenu()} {/* RENDER THE CONTEXT MENU HERE */}
+            {renderContextMenu()}
             
             {selectedUser ? (
                 <section className="flex flex-col items-start justify-start h-screen w-[100%] background-image">
@@ -314,7 +307,6 @@ const Chatbox = ({ selectedUser, onChatDeleted }) => {
                                 <p className="font-light text-[#2A3D39] text-sm">@{selectedUser?.username || "chatfrik"}</p>
                             </span>
                         </main>
-                        {/* DELETE CHAT BUTTON */}
                         <button onClick={handleDeleteChat} className="p-2 text-red-500 hover:text-red-700 disabled:opacity-50" disabled={isUploading}>
                              <RiDeleteBinLine size={24} /> 
                         </button>
@@ -329,7 +321,6 @@ const Chatbox = ({ selectedUser, onChatDeleted }) => {
                                             <div className="flex flex-col items-end w-full">
                                                 <span className="flex gap-3 me-10 h-auto">
                                                     <div className="flex flex-col items-end">
-                                                        {/* MODIFIED: Added onClick to capture event and open menu */}
                                                         <div 
                                                             className="flex items-start bg-white justify-center p-4 rounded-lg shadow-sm cursor-pointer hover:shadow-lg transition-shadow"
                                                             onClick={(e) => handleContextMenuOpen(e, msg)}
@@ -345,7 +336,6 @@ const Chatbox = ({ selectedUser, onChatDeleted }) => {
                                                 <span className="flex gap-3 w-fit h-auto ms-10">
                                                     <img src={defaultAvatar} className="h-11 w-11 object-cover rounded-full" alt="" />
                                                     <div>
-                                                        {/* MODIFIED: Added onClick to capture event and open menu */}
                                                         <div 
                                                             className="flex items-start bg-white justify-center p-4 rounded-lg shadow-sm cursor-pointer hover:shadow-lg transition-shadow"
                                                             onClick={(e) => handleContextMenuOpen(e, msg)}

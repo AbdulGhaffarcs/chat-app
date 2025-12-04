@@ -1,23 +1,28 @@
-import React, { useState, useEffect, useRef } from "react";
-import { getAuth } from "firebase/auth";
-import { doc, getFirestore, onSnapshot, updateDoc } from "firebase/firestore";
-import { FaUserEdit, FaSave, FaUpload } from "react-icons/fa";
-import { storage, ref, uploadBytes, getDownloadURL } from "../firebase/firebase";
+import React, { useState, useEffect, } from "react";
+import { auth, db } from "../firebase/firebase";
+import { doc, onSnapshot, updateDoc } from "firebase/firestore";
+import { FaUserEdit, FaSave } from "react-icons/fa";
 
+const AVATAR_GALLERY = [
+    '/assets/user.jpg', 
+    '/assets/male1.jpg',
+    '/assets/male2.jpg',
+    '/assets/male3.jpg',
+    'assets/male4.jpg',
+    '/assets/fm1.jpg',
+    '/assets/fm2.jpg',
+    '/assets/fm3.jpg',
+    '/assets/fm4.jpg',
+];
 
-const defaultAvatar = "/assets/user.jpg";
 
 const Profile = ({ onBack }) => {
-    const auth = getAuth();
-    const db = getFirestore();
     const currentUser = auth.currentUser;
-    const fileInputRef = useRef(null);
     
     const [userData, setUserData] = useState({ fullName: "", username: "", image: "" });
     const [isEditing, setIsEditing] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
-    // Fetch and listen to user profile data
     useEffect(() => {
         if (!currentUser?.uid) return;
 
@@ -26,11 +31,11 @@ const Profile = ({ onBack }) => {
             if (docSnap.exists()) {
                 setUserData(docSnap.data());
             } else {
-                setUserData({ fullName: currentUser.email.split('@')[0], username: currentUser.email.split('@')[0], image: defaultAvatar });
+                setUserData({ fullName: currentUser.email.split('@')[0], username: currentUser.email.split('@')[0], image: AVATAR_GALLERY[0] });
             }
         });
         return () => unsubscribe();
-    }, [currentUser, db]);
+    }, [currentUser.email, currentUser.uid]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -56,45 +61,49 @@ const Profile = ({ onBack }) => {
         }
     };
     
-    // FIX: Function to trigger the hidden file input
-    const handleImageUploadClick = () => {
-        if (fileInputRef.current) {
-            fileInputRef.current.click();
-        }
-    };
-
-    // Function to handle file selection and upload
-    const handleFileChange = async (e) => {
-        const file = e.target.files[0];
-        if (!file || !currentUser?.uid) return;
-
+    const handleAvatarSelect = async (url) => {
+        if (!currentUser?.uid) return;
         setIsLoading(true);
+        
         try {
-            // 1. Define the storage location (e.g., users/USER_UID/profile)
-            const imageRef = ref(storage, `users/${currentUser.uid}/profile`);
-
-            // 2. Upload the file
-            const snapshot = await uploadBytes(imageRef, file);
-            
-            // 3. Get the permanent public download URL
-            const url = await getDownloadURL(snapshot.ref);
-
-            // 4. Update the user's Firestore document with the new URL
             const userDocRef = doc(db, "users", currentUser.uid);
             await updateDoc(userDocRef, {
                 image: url,
             });
-
             setUserData(prev => ({ ...prev, image: url }));
-            alert("Profile picture uploaded and saved successfully!");
-
+            console.log("Avatar updated.");
         } catch (error) {
-            console.error("Error uploading image:", error);
-            alert("Failed to upload image. Please check Firebase Storage rules and settings.");
+            console.error("Error setting avatar:", error);
+            alert("Failed to set avatar.");
         } finally {
             setIsLoading(false);
         }
     };
+
+
+    const AvatarGallery = () => (
+        <div className="mt-4 max-h-48 overflow-y-auto custom-scrollbar p-2 border rounded-lg bg-gray-50">
+            <h3 className="text-sm font-semibold mb-3 text-gray-700">Choose your Avatar:</h3>
+            <div className="flex flex-wrap gap-3 justify-center">
+                {AVATAR_GALLERY.map((url, index) => (
+                    <button
+                        key={index}
+                        onClick={() => handleAvatarSelect(url)}
+                        disabled={isLoading}
+                        className={`w-14 h-14 rounded-full border-2 transition-all p-0.5 ${
+                            userData.image === url ? 'border-4 border-[#01AA85]' : 'border-gray-300 hover:border-gray-500'
+                        }`}
+                    >
+                        <img 
+                            src={url} 
+                            alt={`Avatar ${index + 1}`} 
+                            className="w-full h-full object-cover rounded-full" 
+                        />
+                    </button>
+                ))}
+            </div>
+        </div>
+    );
 
     return (
         <section className="flex flex-col items-center p-8 h-screen w-full bg-[#e5f6f3] overflow-y-auto">
@@ -102,7 +111,6 @@ const Profile = ({ onBack }) => {
                 <header className="flex justify-between items-center mb-6 border-b pb-4">
                     <h1 className="text-3xl font-bold text-teal-700">User Profile</h1>
                     <div className="flex gap-2">
-                        {/* Save Button (Visible only when editing) */}
                         {isEditing && (
                             <button 
                                 onClick={handleSave} 
@@ -112,7 +120,6 @@ const Profile = ({ onBack }) => {
                                 <FaSave size={20} />
                             </button>
                         )}
-                        {/* Edit Toggle Button */}
                         <button 
                             onClick={() => setIsEditing(!isEditing)} 
                             className={`p-2 rounded-full transition-colors ${isEditing ? 'bg-gray-400 text-white hover:bg-gray-500' : 'bg-[#D9F2ED] text-[#01AA85] hover:bg-[#c8eae3]'}`}
@@ -123,34 +130,23 @@ const Profile = ({ onBack }) => {
                     </div>
                 </header>
                 
-                {/* Hidden File Input */}
-                <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleFileChange}
-                    accept="image/*"
-                    style={{ display: 'none' }}
-                />
-
                 <div className="flex flex-col items-center mb-8 relative">
                     <img 
-                        src={userData.image || defaultAvatar} 
+                        src={userData.image || AVATAR_GALLERY[0]} 
                         alt="Profile Avatar" 
                         className="w-32 h-32 object-cover rounded-full border-4 border-[#01AA85]"
                     />
-                    {/* Image Upload Button (Visible only when editing) */}
-                    {isEditing && (
-                        <button 
-                            onClick={handleImageUploadClick} 
-                            className="absolute bottom-0 right-1/2 translate-x-1/2 mt-2 bg-[#01AA85] text-white p-3 rounded-full hover:bg-[#019379] transition-colors shadow-lg"
-                            disabled={isLoading}
-                        >
-                            <FaUpload size={18} />
-                        </button>
+                    
+                    {!isEditing && (
+                        <p className="mt-2 text-sm text-gray-500">
+                            Click edit to change avatar
+                        </p>
                     )}
                 </div>
 
-                <div className="space-y-4">
+                {isEditing && <AvatarGallery />}
+
+                <div className="space-y-4 mt-6">
                     <div>
                         <label className="block text-sm font-medium text-gray-700">Full Name</label>
                         <input
@@ -184,11 +180,11 @@ const Profile = ({ onBack }) => {
                     </div>
                 </div>
 
-                {isEditing && (
-                    <p className="mt-4 text-sm text-center text-gray-500">
-                        *Full Name and Username changes are saved when you click the save icon.
-                    </p>
-                )}
+                <p className="mt-4 text-sm text-center text-gray-500">
+                    {isEditing ? 
+                    '*Name and Username changes are saved when you click the save icon. Avatar changes instantly.'
+                    : '*Read-only mode. Click edit to make changes.'}
+                </p>
 
                 <button 
                     onClick={onBack} 

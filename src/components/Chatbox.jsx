@@ -258,11 +258,11 @@ const Chatbox = ({ selectedUser, onChatDeleted }) => {
         return (
             <div className="fixed inset-0 z-50" onClick={handleContextMenuClose}>
                 <div 
-                    className="absolute bg-white rounded-xl shadow-2xl p-2 w-56 transform -translate-y-full"
+                    className="absolute bg-white rounded-xl shadow-2xl p-2 w-56"
                     style={{ 
                         left: `${x}px`,
                         top: `${y}px`,
-                        transform: `translate(-50%, -110%)`
+                        transform: `translate(-50%, 0%)` // Remove the extra className transform
                     }}
                     onClick={(e) => e.stopPropagation()}
                 >

@@ -36,18 +36,43 @@ const App = () => {
             return <Profile onBack={() => setCurrentScreen('chat')} />;
         }
         
+        // Responsive Layout Logic
         return (
-            <div className="flex lg:flex-row flex-col items-start w-[100%]">
-                <Navlinks setCurrentScreen={setCurrentScreen} />
-                <Chatlist setSelectedUser={setSelectedUser} />
-                {/* MODIFIED: Pass onChatDeleted prop to reset selectedUser */}
-                <Chatbox selectedUser={selectedUser} onChatDeleted={() => setSelectedUser(null)} />
+            // Main container: full height/width, row layout on desktop (lg:flex-row)
+            <div className="flex lg:flex-row flex-col items-start w-full h-screen overflow-hidden">
+                
+                {/* Navlinks (Sidebar/Mobile Header) 
+                    - Hidden on mobile only if the Chatbox is open (selectedUser is true).
+                */}
+                <div className={`lg:block w-full lg:w-[150px] lg:flex-shrink-0 ${selectedUser && currentScreen === 'chat' ? 'hidden' : 'block'}`}>
+                    <Navlinks setCurrentScreen={setCurrentScreen} />
+                </div>
+                
+                {/* Chatlist (Chat Selector Pane) 
+                    - Hidden on mobile if a chat is selected.
+                    - Occupies a fixed width on large screens.
+                */}
+                <div className={`w-full lg:w-[350px] lg:flex-shrink-0 ${selectedUser ? 'hidden lg:block' : 'block'}`}>
+                    <Chatlist setSelectedUser={setSelectedUser} />
+                </div>
+
+                {/* Chatbox (Chat Window Pane) 
+                    - Takes over the entire screen on mobile when a chat is selected.
+                    - Hidden on mobile if no chat is selected.
+                */}
+                <div className={`w-full lg:flex-grow h-full ${selectedUser ? 'block' : 'hidden lg:block'}`}>
+                    <Chatbox 
+                        selectedUser={selectedUser} 
+                        onChatDeleted={() => setSelectedUser(null)} 
+                        onBackToChatlist={() => setSelectedUser(null)}
+                    />
+                </div>
             </div>
         );
     };
 
     return (
-        <div>
+        <div className="w-full h-full"> 
             {user ? (
                 renderAuthenticatedApp()
             ) : (

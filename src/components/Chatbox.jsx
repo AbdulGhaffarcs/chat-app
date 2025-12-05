@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { formatTimestamp } from "../utils/formatTimestamp"; // This is the file we updated
-import { RiSendPlaneFill, RiAttachmentLine, RiCloseLine, RiDeleteBinLine, RiReplyLine, RiFileCopyLine } from "react-icons/ri"; 
+import { formatTimestamp } from "../utils/formatTimestamp"; 
+// UPDATED: Added RiArrowLeftLine for mobile back button
+import { RiSendPlaneFill, RiAttachmentLine, RiCloseLine, RiDeleteBinLine, RiReplyLine, RiFileCopyLine, RiArrowLeftLine } from "react-icons/ri"; 
 import { FaFileAlt } from "react-icons/fa";
 import { auth, listenForMessages, sendMessage, uploadChatAttachment, deleteChatAndMessages, deleteMessage } from "../firebase/firebase"; 
 import logo from "/assets/favicon.png";
@@ -59,7 +60,8 @@ const compressImage = (file, { quality = 0.7, maxWidth = 1024, maxHeight = 1024,
 };
 
 
-const Chatbox = ({ selectedUser, onChatDeleted }) => {
+// ADDED onBackToChatlist to props
+const Chatbox = ({ selectedUser, onChatDeleted, onBackToChatlist }) => {
     const [messages, setMessages] = useState([]);
     const [messageText, sendMessageText] = useState("");
     const [attachmentFile, setAttachmentFile] = useState(null);
@@ -299,12 +301,16 @@ const Chatbox = ({ selectedUser, onChatDeleted }) => {
                 <section className="flex flex-col items-start justify-start h-screen w-[100%] background-image">
                     <header className="w-[100%] h-[82px] m:h-fit p-4 bg-white flex items-center justify-between">
                         <main className="flex items-center gap-3">
+                            {/* NEW: Back button visible only on mobile screens */}
+                            <button onClick={onBackToChatlist} className="block lg:hidden p-1 text-[#2A3D39] hover:text-[#01AA85]">
+                                <RiArrowLeftLine size={24} />
+                            </button>
                             <span>
                                 <img src={selectedUser?.image || defaultAvatar} className="w-11 h-11 object-cover rounded-full" alt="" />
                             </span>
                             <span>
                                 <h3 className="font-semibold text-[#2A3D39] text-lg">{selectedUser?.fullName }</h3>
-                                <p className="font-light text-[#2A3D39] text-sm">@{selectedUser?.username }</p>
+                                <p className="font-light text-[#2A3D39] text-sm">@{selectedUser?.username}</p>
                             </span>
                         </main>
                         <button onClick={handleDeleteChat} className="p-2 text-red-500 hover:text-red-700 disabled:opacity-50" disabled={isUploading}>
@@ -328,8 +334,7 @@ const Chatbox = ({ selectedUser, onChatDeleted }) => {
                                                             {renderMessageContent(msg)}
                                                         </div>
                                                         <p className="text-gray-400 text-sx mt-3 text-right">
-                                                            {/* UPDATED: Pass true to return time only */}
-                                                            {formatTimestamp(msg?.timestamp, false, true)}
+                                                            {formatTimestamp(msg?.timestamp, true)}
                                                         </p>
                                                     </div>
                                                 </span>
@@ -346,8 +351,7 @@ const Chatbox = ({ selectedUser, onChatDeleted }) => {
                                                             {renderMessageContent(msg)}
                                                         </div>
                                                         <p className="text-gray-400 text-sx mt-3">
-                                                            {/* UPDATED: Pass true to return time only */}
-                                                            {formatTimestamp(msg?.timestamp, false, true)}
+                                                            {formatTimestamp(msg?.timestamp, true)}
                                                         </p>
                                                     </div>
                                                 </span>
@@ -403,7 +407,7 @@ const Chatbox = ({ selectedUser, onChatDeleted }) => {
                 <section className="h-screen w-[100%] bg-[#e5f6f3]">
                     <div className="flex flex-col justify-center items-center h-[100vh]">
                         <img src={logo} alt="" width={100} />
-                        <h1 className="text-[30px] font-bold text-teal-700 mt-5">Welcome to Connect Chat</h1>
+                        <h1 className="text-[30px] font-bold text-teal-700 mt-5">Welcome to Connect chat</h1>
                         <p className="text-gray-500">Connect and chat with friends easily, securely, fast and free</p>
                     </div>
                 </section>

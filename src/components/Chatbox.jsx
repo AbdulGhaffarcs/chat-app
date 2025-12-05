@@ -3,7 +3,7 @@ import { formatTimestamp } from "../utils/formatTimestamp"; // This is the file 
 import { RiSendPlaneFill, RiAttachmentLine, RiCloseLine, RiDeleteBinLine, RiReplyLine, RiFileCopyLine } from "react-icons/ri"; 
 import { FaFileAlt } from "react-icons/fa";
 import { auth, listenForMessages, sendMessage, uploadChatAttachment, deleteChatAndMessages, deleteMessage } from "../firebase/firebase"; 
-import logo from "/assets/logo.png";
+import logo from "/assets/favicon.png";
 
 
 const defaultAvatar = "/assets/user.jpg";
@@ -303,8 +303,8 @@ const Chatbox = ({ selectedUser, onChatDeleted }) => {
                                 <img src={selectedUser?.image || defaultAvatar} className="w-11 h-11 object-cover rounded-full" alt="" />
                             </span>
                             <span>
-                                <h3 className="font-semibold text-[#2A3D39] text-lg">{selectedUser?.fullName || "Chatfrik User"}</h3>
-                                <p className="font-light text-[#2A3D39] text-sm">@{selectedUser?.username || "chatfrik"}</p>
+                                <h3 className="font-semibold text-[#2A3D39] text-lg">{selectedUser?.fullName }</h3>
+                                <p className="font-light text-[#2A3D39] text-sm">@{selectedUser?.username }</p>
                             </span>
                         </main>
                         <button onClick={handleDeleteChat} className="p-2 text-red-500 hover:text-red-700 disabled:opacity-50" disabled={isUploading}>
@@ -403,7 +403,7 @@ const Chatbox = ({ selectedUser, onChatDeleted }) => {
                 <section className="h-screen w-[100%] bg-[#e5f6f3]">
                     <div className="flex flex-col justify-center items-center h-[100vh]">
                         <img src={logo} alt="" width={100} />
-                        <h1 className="text-[30px] font-bold text-teal-700 mt-5">Welcome to Chatfrik</h1>
+                        <h1 className="text-[30px] font-bold text-teal-700 mt-5">Welcome to Connect Chat</h1>
                         <p className="text-gray-500">Connect and chat with friends easily, securely, fast and free</p>
                     </div>
                 </section>

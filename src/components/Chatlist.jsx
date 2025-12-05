@@ -113,8 +113,8 @@ const Chatlist = ({ setSelectedUser }) => {
                 <main className="flex items-center gap-3">
                     <img src={user?.image || defaultAvatar} className="w-[44px] h-[44px] object-cover rounded-full" alt="" />
                     <span>
-                        <h3 className="p-0 font-semibold text-[#2A3D39] md:text-[17px]">{user?.fullName || "ChatFrik user"}</h3>
-                        <p className="p-0 font-light text-[#2A3D39] text-[15px]">@{user?.username || "chatfrik"}</p>
+                        <h3 className="p-0 font-semibold text-[#2A3D39] md:text-[17px]">{user?.fullName}</h3>
+                        <p className="p-0 font-light text-[#2A3D39] text-[15px]">@{user?.username }</p>
                     </span>
                 </main>
                 <button className="bg-[#D9F2ED] w-[35px] h-[35px] p-2 flex items-center justify-center rounded-lg">
@@ -141,7 +141,7 @@ const Chatlist = ({ setSelectedUser }) => {
                             <div className="flex items-start gap-3">
                                 <img src={otherUser?.image || defaultAvatar} className="h-[40px] w-[40px] rounded-full object-cover" alt="" />
                                 <span>
-                                    <h2 className="p-0 font-semibold text-[#2A3d39] text-left text-[17px]">{otherUser?.fullName || "ChatFrik User"}</h2>
+                                    <h2 className="p-0 font-semibold text-[#2A3d39] text-left text-[17px]">{otherUser?.fullName}</h2>
                                     <p className="p-0 font-light text-[#2A3d39] text-left text-[14px]">{chat?.lastMessage || ""}</p>
                                 </span>
                             </div>

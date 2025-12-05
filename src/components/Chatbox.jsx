@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { formatTimestamp } from "../utils/formatTimestamp"; 
-// UPDATED: Added RiArrowLeftLine for mobile back button
+// UPDATED: Added RiArrowLeftLine, RiSendPlaneFill, RiAttachmentLine, RiCloseLine, RiDeleteBinLine, RiReplyLine, RiFileCopyLine 
 import { RiSendPlaneFill, RiAttachmentLine, RiCloseLine, RiDeleteBinLine, RiReplyLine, RiFileCopyLine, RiArrowLeftLine } from "react-icons/ri"; 
 import { FaFileAlt } from "react-icons/fa";
 import { auth, listenForMessages, sendMessage, uploadChatAttachment, deleteChatAndMessages, deleteMessage } from "../firebase/firebase"; 
@@ -86,7 +86,7 @@ const Chatbox = ({ selectedUser, onChatDeleted, onBackToChatlist }) => {
         }
     }, [messages]);
 
-    const sortedMessages = useMemo(() => {
+ const sortedMessages = useMemo(() => {
         return [...messages].sort((a, b) => {
             const aTimestamp = a?.timestamp?.seconds + a?.timestamp?.nanoseconds / 1e9;
             const bTimestamp = b?.timestamp?.seconds + b?.timestamp?.nanoseconds / 1e9;
@@ -227,28 +227,7 @@ const Chatbox = ({ selectedUser, onChatDeleted, onBackToChatlist }) => {
     };
 
     const renderMessageContent = (msg) => {
-        if (msg.fileURL) {
-            if (msg.fileType === 'image') {
-                return (
-                    <div className="flex flex-col gap-2">
-                        <a href={msg.fileURL} target="_blank" rel="noopener noreferrer">
-                            <img src={msg.fileURL} alt="Attachment" className="max-w-xs max-h-52 rounded-lg object-cover cursor-pointer" />
-                        </a>
-                        {msg.text && <p className="text-sm mt-1">{msg.text}</p>}
-                    </div>
-                );
-            } else {
-                return (
-                    <div className="flex flex-col gap-2">
-                        <a href={msg.fileURL} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-teal-600 hover:underline bg-gray-100 p-2 rounded-lg">
-                            <FaFileAlt size={20} />
-                            <span>{msg.fileURL.split('/').pop().split('?')[0].slice(0, 20)}...</span>
-                        </a>
-                        {msg.text && <p className="text-sm mt-1">{msg.text}</p>}
-                    </div>
-                );
-            }
-        }
+        // Return raw text content, without the separate timestamp
         return <h4>{msg.text}</h4>;
     };
 
@@ -301,7 +280,7 @@ const Chatbox = ({ selectedUser, onChatDeleted, onBackToChatlist }) => {
                 <section className="flex flex-col items-start justify-start h-screen w-[100%] background-image">
                     <header className="w-[100%] h-[82px] m:h-fit p-4 bg-white flex items-center justify-between">
                         <main className="flex items-center gap-3">
-                            {/* NEW: Back button visible only on mobile screens */}
+                            {/* NEW: Mobile back button */}
                             <button onClick={onBackToChatlist} className="block lg:hidden p-1 text-[#2A3D39] hover:text-[#01AA85]">
                                 <RiArrowLeftLine size={24} />
                             </button>
@@ -310,7 +289,7 @@ const Chatbox = ({ selectedUser, onChatDeleted, onBackToChatlist }) => {
                             </span>
                             <span>
                                 <h3 className="font-semibold text-[#2A3D39] text-lg">{selectedUser?.fullName }</h3>
-                                <p className="font-light text-[#2A3D39] text-sm">@{selectedUser?.username}</p>
+                                <p className="font-light text-[#2A3D39] text-sm">@{selectedUser?.username }</p>
                             </span>
                         </main>
                         <button onClick={handleDeleteChat} className="p-2 text-red-500 hover:text-red-700 disabled:opacity-50" disabled={isUploading}>
@@ -328,31 +307,35 @@ const Chatbox = ({ selectedUser, onChatDeleted, onBackToChatlist }) => {
                                                 <span className="flex gap-3 me-10 h-auto">
                                                     <div className="flex flex-col items-end">
                                                         <div 
-                                                            className="flex items-start bg-white justify-center p-4 rounded-lg shadow-sm cursor-pointer hover:shadow-lg transition-shadow"
+                                                            //  Integrated timestamp and background color
+                                                            className="flex flex-col items-end bg-[#D9F2ED] p-3 rounded-lg shadow-sm cursor-pointer max-w-xs transition-shadow"
                                                             onClick={(e) => handleContextMenuOpen(e, msg)}
                                                         >
                                                             {renderMessageContent(msg)}
-                                                        </div>
-                                                        <p className="text-gray-400 text-sx mt-3 text-right">
+                                                             <p className="text-gray-400 text-sx mt-3 text-right">
                                                             {formatTimestamp(msg?.timestamp, true)}
                                                         </p>
+                                                        </div>
                                                     </div>
                                                 </span>
                                             </div>
                                         ) : (
                                             <div className="flex flex-col items-start w-full">
-                                                <span className="flex gap-3 w-fit h-auto ms-10">
-                                                    <img src={defaultAvatar} className="h-11 w-11 object-cover rounded-full" alt="" />
+                                                <span className="flex gap-10 w-fit h-auto ms-10">
+                                                   
                                                     <div>
                                                         <div 
-                                                            className="flex items-start bg-white justify-center p-4 rounded-lg shadow-sm cursor-pointer hover:shadow-lg transition-shadow"
+                                                          
+                                                            className="flex flex-col items-start bg-white p-3 rounded-lg shadow-sm cursor-pointer max-w-xs transition-shadow"
                                                             onClick={(e) => handleContextMenuOpen(e, msg)}
                                                         >
                                                             {renderMessageContent(msg)}
+                                                            {/* Integrated Timestamp (Time Only) */}
+                                                            <p className="text-gray-500 text-[10px] self-end mt-1">
+                                                                {formatTimestamp(msg?.timestamp, true)}
+                                                            </p>
                                                         </div>
-                                                        <p className="text-gray-400 text-sx mt-3">
-                                                            {formatTimestamp(msg?.timestamp, true)}
-                                                        </p>
+                                                        
                                                     </div>
                                                 </span>
                                             </div>
@@ -407,7 +390,7 @@ const Chatbox = ({ selectedUser, onChatDeleted, onBackToChatlist }) => {
                 <section className="h-screen w-[100%] bg-[#e5f6f3]">
                     <div className="flex flex-col justify-center items-center h-[100vh]">
                         <img src={logo} alt="" width={100} />
-                        <h1 className="text-[30px] font-bold text-teal-700 mt-5">Welcome to Connect chat</h1>
+                        <h1 className="text-[30px] font-bold text-teal-700 mt-5">Welcome to Connect</h1>
                         <p className="text-gray-500">Connect and chat with friends easily, securely, fast and free</p>
                     </div>
                 </section>

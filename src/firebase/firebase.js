@@ -19,7 +19,19 @@ const db = getFirestore(app);
 const storage = getStorage(app);
 
 // ... (deleteMessage, deleteChatAndMessages, uploadChatAttachment, listenForChats, sendMessage, listenForMessages functions remain the same)
-
+export const archiveChat = async (chatId, userId, archiveStatus) => {
+    const chatRef = doc(db, "chats", chatId);
+    try {
+        await updateDoc(chatRef, {
+            // Using a map field to store user-specific archive status
+            [`archivedBy.${userId}`]: archiveStatus, 
+        });
+        console.log(`Chat ${chatId} archive status set to ${archiveStatus} for user ${userId}`);
+    } catch (error) {
+        console.error("Error updating archive status:", error);
+        throw error;
+    }
+};
 export const deleteMessage = async (chatId, messageId) => {
     const messageRef = doc(db, "chats", chatId, "messages", messageId);
     await deleteDoc(messageRef);

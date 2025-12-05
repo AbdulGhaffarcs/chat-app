@@ -113,12 +113,13 @@ const Chatlist = ({ setSelectedUser }) => {
                 <main className="flex items-center gap-3">
                     <img src={user?.image || defaultAvatar} className="w-[44px] h-[44px] object-cover rounded-full" alt="" />
                     <span>
-                        <h3 className="p-0 font-semibold text-[#2A3D39] md:text-[17px]">{user?.fullName}</h3>
-                        <p className="p-0 font-light text-[#2A3D39] text-[15px]">@{user?.username }</p>
+                        <h3 className="p-0 font-semibold text-[#2A3D39] md:text-[17px]">{user?.fullName || "ChatFrik user"}</h3>
+                        <p className="p-0 font-light text-[#2A3D39] text-[15px]">@{user?.username || "chatfrik"}</p>
                     </span>
                 </main>
-                <button className="bg-[#D9F2ED] w-[35px] h-[35px] p-2 flex items-center justify-center rounded-lg">
-                    <RiMore2Fill color="#01AA85" className="w-[28px] h-[28px]" />
+                {/* UPDATED: More discreet options button */}
+                <button className="p-2 rounded-lg text-[#01AA85] hover:bg-gray-100">
+                    <RiMore2Fill size={24} />
                 </button>
             </header>
 
@@ -137,11 +138,14 @@ const Chatlist = ({ setSelectedUser }) => {
                     if (!otherUser) return null; // Skip if no valid chat partner found
 
                     return (
-                        <button key={chat?.id} className="flex items-start justify-between w-[100%] border-b border-[#9090902c] px-5 pb-3 pt-3" onClick={() => setSelectedUser(otherUser)}>
+                        <button key={chat?.id} 
+                                // UPDATED: Added subtle hover background
+                                className="flex items-start justify-between w-[100%] border-b border-[#9090902c] px-5 pb-3 pt-3 transition-colors duration-150 hover:bg-[#f3f9f9]" 
+                                onClick={() => setSelectedUser(otherUser)}>
                             <div className="flex items-start gap-3">
                                 <img src={otherUser?.image || defaultAvatar} className="h-[40px] w-[40px] rounded-full object-cover" alt="" />
                                 <span>
-                                    <h2 className="p-0 font-semibold text-[#2A3d39] text-left text-[17px]">{otherUser?.fullName}</h2>
+                                    <h2 className="p-0 font-semibold text-[#2A3d39] text-left text-[17px]">{otherUser?.fullName || "ChatFrik User"}</h2>
                                     <p className="p-0 font-light text-[#2A3d39] text-left text-[14px]">{chat?.lastMessage || ""}</p>
                                 </span>
                             </div>

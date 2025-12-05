@@ -47,33 +47,39 @@ const Navlinks = ({ setCurrentScreen }) => {
 
                 <ul className="flex lg:flex-col flex-row items-center gap-7 md:gap-10 px-2 md:px-0">
                     <li className="">
-                        <button className="lg:text-[28px] text-[22px] cursor-pointer">
-                            <RiChatAiLine color="#fff" />
+                        {/* MODIFIED: Circular, modern button style */}
+                        <button className="w-10 h-10 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/40 transition-colors">
+                            <RiChatAiLine color="#fff" className="w-[20px] h-[20px] lg:w-[24px] lg:h-[24px]" />
                         </button>
                     </li>
                     <li className="">
-                        <button onClick={handleProfileClick} className="lg:text-[28px] text-[22px] cursor-pointer">
-                            <RiFolderUserLine color="#fff" />
+                        {/* MODIFIED: Circular, modern button style */}
+                        <button onClick={handleProfileClick} className="w-10 h-10 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/40 transition-colors">
+                            <RiFolderUserLine color="#fff" className="w-[20px] h-[20px] lg:w-[24px] lg:h-[24px]" />
                         </button>
                     </li>
                     <li className="">
-                        <button onClick={handleNotificationsClick} className="lg:text-[28px] text-[22px] cursor-pointer">
-                            <RiNotificationLine color="#fff" />
+                        {/* MODIFIED: Circular, modern button style */}
+                        <button onClick={handleNotificationsClick} className="w-10 h-10 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/40 transition-colors">
+                            <RiNotificationLine color="#fff" className="w-[20px] h-[20px] lg:w-[24px] lg:h-[24px]" />
                         </button>
                     </li>
                     <li className="">
-                        <button onClick={handleFileClick} className="lg:text-[28px] text-[22px] cursor-pointer">
-                            <RiFile4Line color="#fff" />
+                        {/* MODIFIED: Circular, modern button style */}
+                        <button onClick={handleFileClick} className="w-10 h-10 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/40 transition-colors">
+                            <RiFile4Line color="#fff" className="w-[20px] h-[20px] lg:w-[24px] lg:h-[24px]" />
                         </button>
                     </li>
                     <li className="">
-                        <button onClick={handleAIClick} className="lg:text-[28px] text-[22px] cursor-pointer">
-                            <RiBardLine color="#fff" />
+                        {/* MODIFIED: Circular, modern button style */}
+                        <button onClick={handleAIClick} className="w-10 h-10 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/40 transition-colors">
+                            <RiBardLine color="#fff" className="w-[20px] h-[20px] lg:w-[24px] lg:h-[24px]" />
                         </button>
                     </li>
                     <li className="">
-                        <button onClick={handleLogout} className="lg:text-[28px] text-[22px] cursor-pointer">
-                            <RiShutDownLine color="#fff" />
+                        {/* MODIFIED: Circular, modern button style */}
+                        <button onClick={handleLogout} className="w-10 h-10 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/40 transition-colors">
+                            <RiShutDownLine color="#fff" className="w-[20px] h-[20px] lg:w-[24px] lg:h-[24px]" />
                         </button>
                     </li>
                 </ul>

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { formatTimestamp } from "../utils/formatTimestamp";
+import { formatTimestamp } from "../utils/formatTimestamp"; // This is the file we updated
 import { RiSendPlaneFill, RiAttachmentLine, RiCloseLine, RiDeleteBinLine, RiReplyLine, RiFileCopyLine } from "react-icons/ri"; 
 import { FaFileAlt } from "react-icons/fa";
 import { auth, listenForMessages, sendMessage, uploadChatAttachment, deleteChatAndMessages, deleteMessage } from "../firebase/firebase"; 
@@ -327,7 +327,10 @@ const Chatbox = ({ selectedUser, onChatDeleted }) => {
                                                         >
                                                             {renderMessageContent(msg)}
                                                         </div>
-                                                        <p className="text-gray-400 text-sx mt-3 text-right">{formatTimestamp(msg?.timestamp)}</p>
+                                                        <p className="text-gray-400 text-sx mt-3 text-right">
+                                                            {/* UPDATED: Pass true to return time only */}
+                                                            {formatTimestamp(msg?.timestamp, false, true)}
+                                                        </p>
                                                     </div>
                                                 </span>
                                             </div>
@@ -342,7 +345,10 @@ const Chatbox = ({ selectedUser, onChatDeleted }) => {
                                                         >
                                                             {renderMessageContent(msg)}
                                                         </div>
-                                                        <p className="text-gray-400 text-sx mt-3">{formatTimestamp(msg?.timestamp)}</p>
+                                                        <p className="text-gray-400 text-sx mt-3">
+                                                            {/* UPDATED: Pass true to return time only */}
+                                                            {formatTimestamp(msg?.timestamp, false, true)}
+                                                        </p>
                                                     </div>
                                                 </span>
                                             </div>

@@ -13,6 +13,9 @@ const AVATAR_GALLERY = [
     '/assets/fm2.jpg',
     '/assets/fm3.jpg',
     '/assets/fm4.jpg',
+    '/assets/user1.png',
+    
+
 ];
 
 

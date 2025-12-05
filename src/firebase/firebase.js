@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { addDoc, collection, doc, getDoc ,onSnapshot, serverTimestamp, setDoc, updateDoc, deleteDoc, getDocs, writeBatch } from "firebase/firestore";
@@ -17,6 +17,8 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
+
+// ... (deleteMessage, deleteChatAndMessages, uploadChatAttachment, listenForChats, sendMessage, listenForMessages functions remain the same)
 
 export const deleteMessage = async (chatId, messageId) => {
     const messageRef = doc(db, "chats", chatId, "messages", messageId);
@@ -130,6 +132,4 @@ export const listenForMessages = (chatId, setMessages) => {
         setMessages(messages);
     });
 };
-
-
-export { auth, db, storage, ref, uploadBytes, getDownloadURL };
+export { auth, db, storage, ref, uploadBytes, getDownloadURL, GoogleAuthProvider, signInWithPopup };

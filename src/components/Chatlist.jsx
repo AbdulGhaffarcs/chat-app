@@ -1,21 +1,23 @@
 import React, { useState, useEffect, useMemo } from "react";
-// UPDATED: Added RiArchiveLine for the context menu
-import { RiMore2Fill, RiArchiveLine } from "react-icons/ri";
+// UPDATED: Imported RiArchiveLine, RiArrowLeftLine for back navigation in archived view
+import { RiMore2Fill, RiArchiveLine, RiArrowLeftLine } from "react-icons/ri"; 
 import SearchModal from "./SearchModal";
 import { formatTimestamp } from "../utils/formatTimestamp";
 // UPDATED: Imported archiveChat
-import { auth, db, listenForChats, archiveChat } from "../firebase/firebase";
+import { auth, db, listenForChats, archiveChat } from "../firebase/firebase"; 
 import { doc, onSnapshot } from "firebase/firestore";
 // TEMP: Import mock data for fallback presentation
 import mockChatData from "../data/chats";
 
 const Chatlist = ({ setSelectedUser }) => {
-    const [chats, setChats] = useState([]);
+    // UPDATED: Now stores all chats fetched from Firebase, before client-side filtering
+    const [allChats, setAllChats] = useState([]); 
     const [user, setUser] = useState(null);
-    // NEW STATE: For the context menu (right-click/long press)
     const [contextMenuChat, setContextMenuChat] = useState(null); 
+    // NEW STATE: Toggles the view between active chats and the archived list
+    const [isViewingArchived, setIsViewingArchived] = useState(false); 
 
-    const currentUserId = auth?.currentUser?.uid; // Get current user ID
+    const currentUserId = auth?.currentUser?.uid; 
 
     // Live listener for the logged-in user's profile data
     useEffect(() => {
@@ -34,21 +36,20 @@ const Chatlist = ({ setSelectedUser }) => {
             }
         });
         return () => unsubscribe();
-    }, []);
+    }, [auth?.currentUser?.uid]);
 
-    // Live listener for the user's chat list, with a mock fallback for presentation
+    // Live listener for the user's chat list
     useEffect(() => {
         if (!auth?.currentUser?.uid) return;
 
         const unsubscribe = listenForChats((liveChats) => {
             const currentUser = auth.currentUser;
-
             let finalChats = [];
 
             if (liveChats.length > 0) {
                 finalChats = liveChats;
             } else if (currentUser && mockChatData.length > 0) {
-                // ... (Mock chat creation logic remains here) ...
+                // Mock chat creation logic
                 const mockChat = mockChatData[0];
                 const userToReplaceEmail = "baxo@mailinator.com"; 
                 const mockUser2 = mockChat.users.find(u => u.email !== userToReplaceEmail);
@@ -76,13 +77,8 @@ const Chatlist = ({ setSelectedUser }) => {
                 }
             } 
             
-            // NEW FILTERING: Hide chats archived by the current user
-            const unarchivedChats = finalChats.filter(chat => {
-                const isArchivedByCurrentUser = chat.archivedBy && chat.archivedBy[currentUserId];
-                return !isArchivedByCurrentUser;
-            });
-
-            setChats(unarchivedChats);
+            // Store all fetched chats for later filtering
+            setAllChats(finalChats);
         });
 
         return () => {
@@ -90,9 +86,32 @@ const Chatlist = ({ setSelectedUser }) => {
         };
     }, [auth?.currentUser?.uid, user]);
 
-    const safeChats = Array.isArray(chats) ? chats : [];
+
+    // NEW COMPUTED VALUES: Filter chats into active and archived lists
+    const [activeChats, archivedChats] = useMemo(() => {
+        const active = [];
+        const archived = [];
+
+        if (!currentUserId) return [[], []];
+
+        for (const chat of allChats) {
+            const isArchived = chat.archivedBy && chat.archivedBy[currentUserId];
+            if (isArchived) {
+                archived.push(chat);
+            } else {
+                active.push(chat);
+            }
+        }
+        return [active, archived];
+    }, [allChats, currentUserId]);
+    
+    
+    // Determine which list to display based on state
+    const currentChatList = isViewingArchived ? archivedChats : activeChats;
+    const currentChatCount = isViewingArchived ? archivedChats.length : activeChats.length;
+
     const sortedChats = useMemo(() => {
-        return [...safeChats].sort((a, b) => {
+        return [...currentChatList].sort((a, b) => {
             const aTS = a?.lastMessageTimestamp
                 ? a.lastMessageTimestamp.seconds + (a.lastMessageTimestamp.nanoseconds || 0) / 1e9
                 : 0;
@@ -101,18 +120,16 @@ const Chatlist = ({ setSelectedUser }) => {
                 : 0;
             return bTS - aTS;
         });
-    }, [chats]);
+    }, [currentChatList]);
 
     const startChat = (user) => {
         setSelectedUser(user);
     };
     const defaultAvatar = "/assets/user.jpg";
     
-    // NEW LOGIC: Context Menu Handlers
+    // Context Menu Handlers
     const handleContextMenuOpen = (e, chat) => {
-        e.preventDefault(); // Prevent native browser context menu
-        
-        // Use coordinates to position the menu near the click
+        e.preventDefault(); 
         const rect = e.currentTarget.getBoundingClientRect();
         setContextMenuChat({
             ...chat,
@@ -125,16 +142,18 @@ const Chatlist = ({ setSelectedUser }) => {
         setContextMenuChat(null);
     };
 
-    const handleArchive = async (chatId) => {
+    // UPDATED: Combined Archive/Unarchive logic
+    const handleArchiveToggle = async (chatId, archiveStatus) => {
         if (!currentUserId) return;
 
         try {
-            // Archive chat (set status to true)
-            await archiveChat(chatId, currentUserId, true);
+            await archiveChat(chatId, currentUserId, archiveStatus);
             handleContextMenuClose();
+            // Optional: Immediately deselect user if the current chat was archived
+            if (setSelectedUser) setSelectedUser(null);
         } catch (error) {
-            console.error("Failed to archive chat:", error);
-            alert("Failed to archive chat.");
+            console.error(`Failed to ${archiveStatus ? 'archive' : 'unarchive'} chat:`, error);
+            alert(`Failed to ${archiveStatus ? 'archive' : 'unarchive'} chat.`);
         }
     };
 
@@ -143,6 +162,12 @@ const Chatlist = ({ setSelectedUser }) => {
 
         const { x, y, id, users } = contextMenuChat;
         const otherUser = users.find((u) => u?.uid !== currentUserId);
+        
+        // Determine the action based on the current view
+        const isArchived = isViewingArchived || (contextMenuChat.archivedBy && contextMenuChat.archivedBy[currentUserId]);
+        const actionText = isArchived ? 'Unarchive Chat' : 'Archive Chat';
+        const actionIcon = isArchived ? <RiArchiveLine size={20} className="mr-3 transform rotate-180" /> : <RiArchiveLine size={20} className="mr-3" />;
+        const archiveStatus = !isArchived; // New status is the opposite
 
         return (
             <div className="fixed inset-0 z-[100]" onClick={handleContextMenuClose}>
@@ -151,7 +176,7 @@ const Chatlist = ({ setSelectedUser }) => {
                     style={{ 
                         left: `${x}px`,
                         top: `${y}px`,
-                        transform: `translate(-100%, 0%)` // Position menu left of the click
+                        transform: `translate(-100%, 0%)` 
                     }}
                     onClick={(e) => e.stopPropagation()}
                 >
@@ -160,10 +185,9 @@ const Chatlist = ({ setSelectedUser }) => {
                     </div>
                     
                     <ul className="py-1">
-                        <li className="flex items-center p-2 hover:bg-gray-100 cursor-pointer text-gray-800" onClick={() => handleArchive(id)}>
-                            <RiArchiveLine size={20} className="mr-3" /> Archive Chat
+                        <li className="flex items-center p-2 hover:bg-gray-100 cursor-pointer text-gray-800" onClick={() => handleArchiveToggle(id, archiveStatus)}>
+                            {actionIcon} {actionText}
                         </li>
-                        {/* You can add an "Unarchive" option here if you implement a separate view for archived chats */}
                     </ul>
                 </div>
             </div>
@@ -175,6 +199,12 @@ const Chatlist = ({ setSelectedUser }) => {
             {renderContextMenu()} 
             <header className="flex items-center justify-between w-[100%] lg:border-b border-b-1 border-[#898989b9] p-4 sticky md:static top-0 z-[100] border-r border-[#9090902c]">
                 <main className="flex items-center gap-3">
+                    {/* NEW: Back button for archived view (Mobile/Desktop) */}
+                    {isViewingArchived && (
+                        <button onClick={() => setIsViewingArchived(false)} className="p-1 text-[#2A3D39] hover:text-[#01AA85] mr-2">
+                             <RiArrowLeftLine size={24} />
+                        </button>
+                    )}
                     <img src={user?.image || defaultAvatar} className="w-[44px] h-[44px] object-cover rounded-full" alt="" />
                     <span>
                         <h3 className="p-0 font-semibold text-[#2A3D39] md:text-[17px]">{user?.fullName || "ChatFrik user"}</h3>
@@ -188,13 +218,34 @@ const Chatlist = ({ setSelectedUser }) => {
 
             <div className="w-[100%] mt-[10px] px-5">
                 <header className="flex items-center justify-between">
-                    <h3 className="text-[16px]">Messages ({safeChats?.length || 0})</h3>
+                    {/* UPDATED HEADER TEXT */}
+                    <h3 className="text-[16px]">{isViewingArchived ? 'Archived Chats' : `Messages (${currentChatCount})`}</h3>
                     <SearchModal startChat={startChat} />
                 </header>
             </div>
 
             <main className="flex flex-col items-start mt-[1.5rem] pb-3 custom-scrollbar w-[100%] h-[100%]">
-                {safeChats?.map((chat) => {
+                
+                {/* NEW: ARCHIVE CHATS BUTTON (WhatsApp Style) - Visible only when viewing active chats */}
+                {!isViewingArchived && archivedChats.length > 0 && (
+                    <button 
+                        onClick={() => setIsViewingArchived(true)} 
+                        className="flex items-center gap-4 w-full border-b border-[#9090902c] px-5 pb-3 pt-3 transition-colors duration-150 hover:bg-[#f3f9f9] text-[#01AA85] font-semibold"
+                    >
+                        <RiArchiveLine size={24} />
+                        <span className="flex-grow text-left">Archived</span>
+                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">{archivedChats.length}</span>
+                    </button>
+                )}
+                
+                {sortedChats.length === 0 && (
+                    <p className="text-center w-full text-gray-500 mt-10">
+                        {isViewingArchived ? "Your archive is empty." : "No active chats found."}
+                    </p>
+                )}
+
+                {/* Chat List Items */}
+                {sortedChats?.map((chat) => {
                     const currentUserEmail = auth?.currentUser?.email;
                     const otherUser = chat?.users?.find((u) => u?.email !== currentUserEmail);
                     if (!otherUser) return null; 
@@ -213,7 +264,6 @@ const Chatlist = ({ setSelectedUser }) => {
                                 </span>
                             </div>
                             <p className="p-0 font-regular text-gray-400 text-left text-[11px]">
-                                {/* Note: FormatTimestamp is still used, this doesn't show the archive icon */}
                                 {chat?.lastMessageTimestamp ? formatTimestamp(chat.lastMessageTimestamp) : ""}
                             </p>
                         </button>

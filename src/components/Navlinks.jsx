@@ -2,7 +2,7 @@ import React from "react";
 import logo from "/assets/logo.png";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase/firebase";
-import { RiArrowDownSFill, RiBardLine, RiChatAiLine, RiFile4Line, RiFolderUserLine, RiNotificationLine, RiShutDownLine } from "react-icons/ri";
+import { RiArrowDownSFill, RiBardLine, RiChatAiLine, RiFile4Line, RiFolderUserLine, RiLogoutCircleFill, RiLogoutCircleLine, RiLogoutCircleRLine, RiNotificationLine, RiShutDownLine } from "react-icons/ri";
 
 const Navlinks = ({ setCurrentScreen }) => { 
     const handleLogout = async () => {
@@ -26,10 +26,10 @@ const Navlinks = ({ setCurrentScreen }) => {
         alert("Notifications feature is not fully implemented. (Console check)");
     };
 
-    const handleFileClick = () => {
-        console.log("File action triggered: Open Documents/Media");
-        alert("File/Media feature is not fully implemented. (Console check)");
-    };
+    // const handleFileClick = () => {
+    //     console.log("File action triggered: Open Documents/Media");
+    //     alert("File/Media feature is not fully implemented. (Console check)");
+    // };
 
     const handleAIClick = () => {
         console.log("AI/Bard action triggered: Open AI Tools");
@@ -39,19 +39,14 @@ const Navlinks = ({ setCurrentScreen }) => {
     return (
         <section className="sticky lg:static top-0 flex items-center lg:items-start lg:justify-start h-[7vh] lg:h-[100vh] w-[100%] lg:w-[150px] py-8 lg:py-0 bg-[#01AA85]">
             <main className="flex lg:flex-col items-center lg:gap-10 justify-between lg:px-0 w-[100%]">
-                <div className="lex items-start justify-center lg:border-b border-b-1 border-[#ffffffb9] lg:w-[100%] p-4">
+                <div className="lex items-start justify-center lg:border-b border-b-1 border-[#ffffffb9] lg:w-[100%] p-2">
                     <span className="flex items-center justify-center ">
-                        <img src={logo} className="w-[56px] h-[52px] object-contain bg-white rounded-lg p-2" alt="" />
+                        <img src={logo} className="w-[80px] h-[auto] object-contain  p-1" alt="" />
                     </span>
                 </div>
 
                 <ul className="flex lg:flex-col flex-row items-center gap-7 md:gap-10 px-2 md:px-0">
-                    <li className="">
-                        {/* MODIFIED: Circular, modern button style */}
-                        <button className="w-10 h-10 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/40 transition-colors">
-                            <RiChatAiLine color="#fff" className="w-[20px] h-[20px] lg:w-[24px] lg:h-[24px]" />
-                        </button>
-                    </li>
+                    
                     <li className="">
                         {/* MODIFIED: Circular, modern button style */}
                         <button onClick={handleProfileClick} className="w-10 h-10 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/40 transition-colors">
@@ -64,12 +59,7 @@ const Navlinks = ({ setCurrentScreen }) => {
                             <RiNotificationLine color="#fff" className="w-[20px] h-[20px] lg:w-[24px] lg:h-[24px]" />
                         </button>
                     </li>
-                    <li className="">
-                        {/* MODIFIED: Circular, modern button style */}
-                        <button onClick={handleFileClick} className="w-10 h-10 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/40 transition-colors">
-                            <RiFile4Line color="#fff" className="w-[20px] h-[20px] lg:w-[24px] lg:h-[24px]" />
-                        </button>
-                    </li>
+                    
                     <li className="">
                         {/* MODIFIED: Circular, modern button style */}
                         <button onClick={handleAIClick} className="w-10 h-10 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/40 transition-colors">
@@ -79,7 +69,7 @@ const Navlinks = ({ setCurrentScreen }) => {
                     <li className="">
                         {/* MODIFIED: Circular, modern button style */}
                         <button onClick={handleLogout} className="w-10 h-10 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/40 transition-colors">
-                            <RiShutDownLine color="#fff" className="w-[20px] h-[20px] lg:w-[24px] lg:h-[24px]" />
+                            <RiLogoutCircleRLine color="#fff" className="w-[20px] h-[20px] lg:w-[24px] lg:h-[24px]" />
                         </button>
                     </li>
                 </ul>

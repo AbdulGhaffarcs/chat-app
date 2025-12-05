@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect, useMemo } from "react";
 // UPDATED: Imported RiArchiveLine, RiArrowLeftLine for back navigation in archived view
 import { RiMore2Fill, RiArchiveLine, RiArrowLeftLine } from "react-icons/ri"; 
@@ -233,8 +234,8 @@ const Chatlist = ({ setSelectedUser }) => {
                         className="flex items-center gap-4 w-full border-b border-[#9090902c] px-5 pb-3 pt-3 transition-colors duration-150 hover:bg-[#f3f9f9] text-[#01AA85] font-semibold"
                     >
                         <RiArchiveLine size={24} />
-                        <span className="flex-grow text-left">Archived</span>
-                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">{archivedChats.length}</span>
+                        <span className="flex-grow text-left ">Archived</span>
+                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full"></span>
                     </button>
                 )}
                 

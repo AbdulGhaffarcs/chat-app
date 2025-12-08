@@ -5,7 +5,7 @@ import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { addDoc, collection, doc, getDoc ,onSnapshot, serverTimestamp, setDoc, updateDoc, deleteDoc, getDocs, writeBatch } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  apiKey: "AIzaSyAH5XJJ1Dlyb84MONrLiU5OvCWQ29I8NtM",
   authDomain: "chat-app-19d50.firebaseapp.com",
   projectId: "chat-app-19d50",
   storageBucket: "chat-app-19d50.firebasestorage.app",

@@ -1,8 +1,10 @@
+// src/components/Navlinks.jsx
+
 import React from "react";
 import logo from "/assets/logo.png";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase/firebase";
-import { RiArrowDownSFill, RiBardLine, RiChatAiLine, RiFile4Line, RiFolderUserLine, RiLogoutCircleFill, RiLogoutCircleLine, RiLogoutCircleRLine, RiNotificationLine, RiShutDownLine } from "react-icons/ri";
+import { RiArrowDownSFill, RiBardLine, RiChatAiLine, RiFile4Line, RiFolderUserLine, RiLogoutCircleRLine, RiNotificationLine, RiShutDownLine } from "react-icons/ri"; 
 
 const Navlinks = ({ setCurrentScreen }) => { 
     const handleLogout = async () => {
@@ -22,18 +24,20 @@ const Navlinks = ({ setCurrentScreen }) => {
     };
 
     const handleNotificationsClick = () => {
-        console.log("Notifications action triggered: Open Notifications list");
-        alert("Notifications feature is not fully implemented. (Console check)");
+        if (setCurrentScreen) {
+            setCurrentScreen('notifications');
+        } else {
+            console.log("Notifications action triggered, but setCurrentScreen is missing.");
+        }
     };
 
-    // const handleFileClick = () => {
-    //     console.log("File action triggered: Open Documents/Media");
-    //     alert("File/Media feature is not fully implemented. (Console check)");
-    // };
-
     const handleAIClick = () => {
-        console.log("AI/Bard action triggered: Open AI Tools");
-        alert("AI Assistant feature is not fully implemented. (Console check)");
+        // UPDATED: Now sets the main app screen state to 'ai'
+        if (setCurrentScreen) {
+            setCurrentScreen('ai');
+        } else {
+            console.log("AI Assistant action triggered, but setCurrentScreen is missing.");
+        }
     };
 
     return (
@@ -41,7 +45,7 @@ const Navlinks = ({ setCurrentScreen }) => {
             <main className="flex lg:flex-col items-center lg:gap-10 justify-between lg:px-0 w-[100%]">
                 <div className="lex items-start justify-center lg:border-b border-b-1 border-[#ffffffb9] lg:w-[100%] p-2">
                     <span className="flex items-center justify-center ">
-                        <img src={logo} className="w-[80px] h-[auto] object-contain  p-1" alt="" />
+                        <img src={logo} className="w-[80px] h-[auto] object-contain  p-1" alt="" /> 
                     </span>
                 </div>
 
@@ -54,20 +58,20 @@ const Navlinks = ({ setCurrentScreen }) => {
                         </button>
                     </li>
                     <li className="">
-                        {/* MODIFIED: Circular, modern button style */}
+                        {/* MODIFIED: Circular, modern button style - Now navigates to Notifications screen */}
                         <button onClick={handleNotificationsClick} className="w-10 h-10 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/40 transition-colors">
                             <RiNotificationLine color="#fff" className="w-[20px] h-[20px] lg:w-[24px] lg:h-[24px]" />
                         </button>
                     </li>
                     
                     <li className="">
-                        {/* MODIFIED: Circular, modern button style */}
+                        {/* MODIFIED: Circular, modern button style - Now calls handleAIClick */}
                         <button onClick={handleAIClick} className="w-10 h-10 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/40 transition-colors">
                             <RiBardLine color="#fff" className="w-[20px] h-[20px] lg:w-[24px] lg:h-[24px]" />
                         </button>
                     </li>
                     <li className="">
-                        {/* MODIFIED: Circular, modern button style */}
+                        {/* MODIFIED: Circular, modern button style (Logout icon changed to RiLogoutCircleRLine) */}
                         <button onClick={handleLogout} className="w-10 h-10 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/40 transition-colors">
                             <RiLogoutCircleRLine color="#fff" className="w-[20px] h-[20px] lg:w-[24px] lg:h-[24px]" />
                         </button>

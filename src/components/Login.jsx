@@ -120,7 +120,13 @@ const Login = ({ isLogin, setIsLogin }) => {
                     <button onClick={() => setIsLogin(!isLogin)}>Don't have an account yet? Sign Up</button>
                 </div>
             </div>
+            <footer className="absolute bottom-4 text-gray-400 text-sm">
+                &copy; {new Date().getFullYear()} ChatApp. All rights reserved.
+                Developed by 
+            </footer>
+            
         </section>
+    
     );
 };
 

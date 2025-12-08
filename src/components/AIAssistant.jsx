@@ -4,8 +4,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { RiArrowLeftLine, RiBardLine, RiSendPlaneFill } from 'react-icons/ri';
 import { GoogleGenAI } from '@google/genai'; // CHANGED: Import the Gemini SDK
 
-// Initialize the Gemini Client
-// IMPORTANT: Ensure your key is in .env as VITE_GEMINI_API_KEY
 const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY }); 
 
 const AIAssistant = ({ onBack }) => {

@@ -1,4 +1,4 @@
-// src/App.jsx
+
 
 import React, { useState, useEffect } from "react";
 import Login from "./components/Login";
@@ -8,7 +8,7 @@ import Chatbox from "./components/Chatbox";
 import Chatlist from "./components/Chatlist";
 import Profile from "./components/Profile";
 import Notifications from "./components/Notifications"; 
-import AIAssistant from "./components/AIAssistant"; // NEW IMPORT
+import AIAssistant from "./components/AIAssistant"; 
 import { auth } from "./firebase/firebase";
 
 const App = () => {
@@ -44,12 +44,10 @@ const App = () => {
             return <Notifications onBack={() => setCurrentScreen('chat')} />;
         }
         
-        // AI Assistant Screen Rendering
         if (currentScreen === 'ai') {
             return <AIAssistant onBack={() => setCurrentScreen('chat')} />;
         }
         
-        // Default Chat View
         return (
             <div className="flex lg:flex-row flex-col items-start w-full h-screen overflow-hidden">
                 

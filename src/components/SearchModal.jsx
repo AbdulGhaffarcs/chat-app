@@ -6,7 +6,6 @@ import { RiSearchLine } from "react-icons/ri";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../firebase/firebase";
 
-// FIX: Changed relative path to absolute public path for consistency and correctness
 const defaultAvatar = "/assets/user.jpg";
 
 const SearchModal = ({ startChat }) => {

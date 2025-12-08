@@ -2,12 +2,17 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { RiArrowLeftLine, RiBardLine, RiSendPlaneFill } from 'react-icons/ri';
-import { GoogleGenAI } from '@google/genai'; // CHANGED: Import the Gemini SDK
+import { GoogleGenAI } from '@google/genai'; 
 
+// Constants for LocalStorage Key
+const AI_HISTORY_STORAGE_KEY = 'geminiChatHistory';
+
+// Initialize the Gemini Client
 const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY }); 
 
 const AIAssistant = ({ onBack }) => {
-    const [messages, setMessages] = useState([]);
+    // 1. STATE: Start with an empty array; history will be loaded in the useEffect below.
+    const [messages, setMessages] = useState([]); 
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef(null);
@@ -16,15 +21,33 @@ const AIAssistant = ({ onBack }) => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
+    // --- NEW: PERSISTENCE LOGIC ---
+    
+    // 2. EFFECT: Load history from LocalStorage on mount
+    useEffect(() => {
+        const storedHistory = localStorage.getItem(AI_HISTORY_STORAGE_KEY);
+        
+        if (storedHistory) {
+            setMessages(JSON.parse(storedHistory));
+        } else {
+            // Default welcome message if no history found
+            setMessages([
+                { role: 'ai', text: "Hello! I am your AI Assistant powered by Google Gemini. How can I help you today?" }
+            ]);
+        }
+    }, []); // Runs only once on mount
+
+    // 3. EFFECT: Save history to LocalStorage whenever messages change
+    useEffect(() => {
+        if (messages.length > 0) {
+            localStorage.setItem(AI_HISTORY_STORAGE_KEY, JSON.stringify(messages));
+        }
+    }, [messages]);
+    
+    // --- END PERSISTENCE LOGIC ---
+
     useEffect(scrollToBottom, [messages]);
     
-    // Initial welcome message
-    useEffect(() => {
-        setMessages([
-            { role: 'ai', text: "Hello! I am your AI Assistant powered by Google Gemini. How can I help you today?" }
-        ]);
-    }, []);
-
 
     const handleSend = async (e) => {
         e.preventDefault();
@@ -33,25 +56,23 @@ const AIAssistant = ({ onBack }) => {
         const userMessage = input.trim();
         const newMessage = { role: 'user', text: userMessage };
         
-        // Gemini API uses 'user' and 'model' roles in the contents array.
-        // We need to map our custom roles correctly.
+        // Prepare the message history for the Gemini API call (context)
         const contents = messages.map(msg => ({
             role: msg.role === 'ai' ? 'model' : msg.role,
             parts: [{ text: msg.text }]
         }));
         
-        // Add the new user message
+        // Add the new user message and update state immediately
         contents.push({ role: 'user', parts: [{ text: userMessage }] });
-
-        setMessages(prev => [...prev, newMessage]);
+        setMessages(prev => [...prev, newMessage]); 
         setInput('');
         setIsLoading(true);
 
         try {
-            // Call the Gemini API using generateContent
+            // Call the Gemini API using the entire history
             const response = await ai.models.generateContent({
-                model: 'gemini-2.5-flash', // A capable model for chat, usually within the free tier
-                contents: contents, // Pass the full message history
+                model: 'gemini-2.5-flash', 
+                contents: contents, 
             });
 
             const aiResponse = response.text;

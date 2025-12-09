@@ -177,7 +177,7 @@ const Profile = ({ onBack }) => {
                         <input
                             type="email"
                             value={currentUser?.email || "N/A"}
-                            readOnly
+                            readOnly={!isEditing}
                             className="w-full p-3 mt-1 border rounded-md bg-gray-100 border-gray-300"
                         />
                     </div>

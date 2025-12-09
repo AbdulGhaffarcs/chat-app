@@ -1,21 +1,19 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect, useMemo } from "react";
-// UPDATED: Imported RiArchiveLine, RiArrowLeftLine for back navigation in archived view
+// UPDATED: Imported markChatAsRead from firebase.js
 import { RiMore2Fill, RiArchiveLine, RiArrowLeftLine } from "react-icons/ri"; 
 import SearchModal from "./SearchModal";
 import { formatTimestamp } from "../utils/formatTimestamp";
-// UPDATED: Imported archiveChat
-import { auth, db, listenForChats, archiveChat } from "../firebase/firebase"; 
+// UPDATED: Imported markChatAsRead for unread functionality
+import { auth, db, listenForChats, archiveChat, markChatAsRead } from "../firebase/firebase"; 
 import { doc, onSnapshot } from "firebase/firestore";
 // TEMP: Import mock data for fallback presentation
 import mockChatData from "../data/chats";
 
 const Chatlist = ({ setSelectedUser }) => {
-    // UPDATED: Now stores all chats fetched from Firebase, before client-side filtering
     const [allChats, setAllChats] = useState([]); 
     const [user, setUser] = useState(null);
     const [contextMenuChat, setContextMenuChat] = useState(null); 
-    // NEW STATE: Toggles the view between active chats and the archived list
     const [isViewingArchived, setIsViewingArchived] = useState(false); 
 
     const currentUserId = auth?.currentUser?.uid; 
@@ -109,10 +107,23 @@ const Chatlist = ({ setSelectedUser }) => {
     
     // Determine which list to display based on state
     const currentChatList = isViewingArchived ? archivedChats : activeChats;
+    const archivedCount = archivedChats.length;
     const currentChatCount = isViewingArchived ? archivedChats.length : activeChats.length;
 
     const sortedChats = useMemo(() => {
-        return [...currentChatList].sort((a, b) => {
+        // Primary sort logic: Bring unread chats to the top
+        const sorted = [...currentChatList].sort((a, b) => {
+            const aUnread = (a.unreadCount && a.unreadCount[currentUserId]) || 0;
+            const bUnread = (b.unreadCount && b.unreadCount[currentUserId]) || 0;
+            
+            // If in active view, sort unread first
+            if (!isViewingArchived) {
+                // Push unread chats up
+                if (aUnread > 0 && bUnread === 0) return -1;
+                if (aUnread === 0 && bUnread > 0) return 1;
+            }
+            
+            // Secondary sort: By timestamp
             const aTS = a?.lastMessageTimestamp
                 ? a.lastMessageTimestamp.seconds + (a.lastMessageTimestamp.nanoseconds || 0) / 1e9
                 : 0;
@@ -121,14 +132,21 @@ const Chatlist = ({ setSelectedUser }) => {
                 : 0;
             return bTS - aTS;
         });
-    }, [currentChatList]);
+        return sorted;
+    }, [currentChatList, isViewingArchived, currentUserId]);
 
-    const startChat = (user) => {
+    // UPDATED: Function to start chat and mark it as read
+    const startChat = (chat, user) => {
         setSelectedUser(user);
+        
+        if (currentUserId && chat?.id) {
+            // Mark the chat as read by resetting the unreadCount to 0
+            markChatAsRead(chat.id, currentUserId);
+        }
     };
     const defaultAvatar = "/assets/user.jpg";
     
-    // Context Menu Handlers
+    // Context Menu Handlers (Unchanged)
     const handleContextMenuOpen = (e, chat) => {
         e.preventDefault(); 
         const rect = e.currentTarget.getBoundingClientRect();
@@ -221,21 +239,22 @@ const Chatlist = ({ setSelectedUser }) => {
                 <header className="flex items-center justify-between">
                     {/* UPDATED HEADER TEXT */}
                     <h3 className="text-[16px]">{isViewingArchived ? 'Archived Chats' : `Messages (${currentChatCount})`}</h3>
-                    <SearchModal startChat={startChat} />
+                    {/* Note: SearchModal likely needs to be updated to use the new startChat signature: startChat(chatObject, userObject) */}
+                    <SearchModal startChat={(userObject) => setSelectedUser(userObject)} /> 
                 </header>
             </div>
 
             <main className="flex flex-col items-start mt-[1.5rem] pb-3 custom-scrollbar w-[100%] h-[100%]">
                 
                 {/* NEW: ARCHIVE CHATS BUTTON (WhatsApp Style) - Visible only when viewing active chats */}
-                {!isViewingArchived && archivedChats.length > 0 && (
+                {!isViewingArchived && archivedCount > 0 && (
                     <button 
                         onClick={() => setIsViewingArchived(true)} 
                         className="flex items-center gap-4 w-full border-b border-[#9090902c] px-5 pb-3 pt-3 transition-colors duration-150 hover:bg-[#f3f9f9] text-[#01AA85] font-semibold"
                     >
                         <RiArchiveLine size={24} />
-                        <span className="flex-grow text-left ">Archived</span>
-                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full"></span>
+                        <span className="flex-grow text-left">Archived</span>
+                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">{archivedCount}</span>
                     </button>
                 )}
                 
@@ -250,23 +269,39 @@ const Chatlist = ({ setSelectedUser }) => {
                     const currentUserEmail = auth?.currentUser?.email;
                     const otherUser = chat?.users?.find((u) => u?.email !== currentUserEmail);
                     if (!otherUser) return null; 
+                    
+                    // UNREAD COUNT LOGIC
+                    const unreadCount = (chat.unreadCount && chat.unreadCount[currentUserId]) || 0;
+                    const hasUnread = unreadCount > 0;
 
                     return (
                         <button key={chat?.id} 
-                                // ADDED: Context menu trigger (right-click/long press)
                                 onContextMenu={(e) => handleContextMenuOpen(e, chat)}
                                 className="flex items-start justify-between w-[100%] border-b border-[#9090902c] px-5 pb-3 pt-3 transition-colors duration-150 hover:bg-[#f3f9f9]" 
-                                onClick={() => setSelectedUser(otherUser)}>
+                                // UPDATED: Pass the full chat object to startChat
+                                onClick={() => startChat(chat, otherUser)}> 
                             <div className="flex items-start gap-3">
                                 <img src={otherUser?.image || defaultAvatar} className="h-[40px] w-[40px] rounded-full object-cover" alt="" />
                                 <span>
-                                    <h2 className="p-0 font-semibold text-[#2A3d39] text-left text-[17px]">{otherUser?.fullName || "ChatFrik User"}</h2>
-                                    <p className="p-0 font-light text-[#2A3d39] text-left text-[14px]">{chat?.lastMessage || ""}</p>
+                                    {/* HIGHLIGHT: BOLD NAME */}
+                                    <h2 className={`p-0 text-left text-[17px] ${hasUnread ? 'font-bold text-teal-800' : 'font-semibold text-[#2A3d39]'}`}>{otherUser?.fullName || "ChatFrik User"}</h2>
+                                    {/* HIGHLIGHT: BOLD LAST MESSAGE */}
+                                    <p className={`p-0 text-left text-[14px] ${hasUnread ? 'font-semibold text-teal-700' : 'font-light text-[#2A3d39]'}`}>{chat?.lastMessage || ""}</p>
                                 </span>
                             </div>
-                            <p className="p-0 font-regular text-gray-400 text-left text-[11px]">
-                                {chat?.lastMessageTimestamp ? formatTimestamp(chat.lastMessageTimestamp) : ""}
-                            </p>
+                            
+                            {/* Unread Counter and Timestamp */}
+                            <div className="flex flex-col items-end gap-1">
+                                <p className="p-0 font-regular text-gray-400 text-left text-[11px]">
+                                    {chat?.lastMessageTimestamp ? formatTimestamp(chat.lastMessageTimestamp) : ""}
+                                </p>
+                                {/* UNREAD BADGE */}
+                                {hasUnread && (
+                                    <span className="bg-teal-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
+                                        {unreadCount}
+                                    </span>
+                                )}
+                            </div>
                         </button>
                     );
                 })}

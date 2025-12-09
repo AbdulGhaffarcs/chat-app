@@ -24,6 +24,7 @@ const Navlinks = ({ setCurrentScreen }) => {
     };
 
     const handleNotificationsClick = () => {
+        // HANDLER: Switches screen to 'notifications'
         if (setCurrentScreen) {
             setCurrentScreen('notifications');
         } else {
@@ -32,13 +33,15 @@ const Navlinks = ({ setCurrentScreen }) => {
     };
 
     const handleAIClick = () => {
-        // UPDATED: Now sets the main app screen state to 'ai'
+        // HANDLER: Switches screen to 'ai'
         if (setCurrentScreen) {
             setCurrentScreen('ai');
         } else {
             console.log("AI Assistant action triggered, but setCurrentScreen is missing.");
         }
     };
+
+ 
 
     return (
         <section className="sticky lg:static top-0 flex items-center lg:items-start lg:justify-start h-[7vh] lg:h-[100vh] w-[100%] lg:w-[150px] py-8 lg:py-0 bg-[#01AA85]">
@@ -52,26 +55,22 @@ const Navlinks = ({ setCurrentScreen }) => {
                 <ul className="flex lg:flex-col flex-row items-center gap-7 md:gap-10 px-2 md:px-0">
                     
                     <li className="">
-                        {/* MODIFIED: Circular, modern button style */}
                         <button onClick={handleProfileClick} className="w-10 h-10 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/40 transition-colors">
                             <RiFolderUserLine color="#fff" className="w-[20px] h-[20px] lg:w-[24px] lg:h-[24px]" />
                         </button>
                     </li>
                     <li className="">
-                        {/* MODIFIED: Circular, modern button style - Now navigates to Notifications screen */}
                         <button onClick={handleNotificationsClick} className="w-10 h-10 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/40 transition-colors">
                             <RiNotificationLine color="#fff" className="w-[20px] h-[20px] lg:w-[24px] lg:h-[24px]" />
                         </button>
                     </li>
                     
                     <li className="">
-                        {/* MODIFIED: Circular, modern button style - Now calls handleAIClick */}
                         <button onClick={handleAIClick} className="w-10 h-10 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/40 transition-colors">
                             <RiBardLine color="#fff" className="w-[20px] h-[20px] lg:w-[24px] lg:h-[24px]" />
                         </button>
                     </li>
                     <li className="">
-                        {/* MODIFIED: Circular, modern button style (Logout icon changed to RiLogoutCircleRLine) */}
                         <button onClick={handleLogout} className="w-10 h-10 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/40 transition-colors">
                             <RiLogoutCircleRLine color="#fff" className="w-[20px] h-[20px] lg:w-[24px] lg:h-[24px]" />
                         </button>

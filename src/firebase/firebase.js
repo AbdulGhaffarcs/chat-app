@@ -1,9 +1,10 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth"; 
 import { getFirestore } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { addDoc, collection, doc, getDoc ,onSnapshot, serverTimestamp, setDoc, updateDoc, deleteDoc, getDocs, writeBatch } from "firebase/firestore";
+import { addDoc, collection, doc, getDoc ,onSnapshot, serverTimestamp, setDoc, updateDoc, deleteDoc, getDocs, writeBatch, query, where, orderBy, limit } from "firebase/firestore";
 
+// --- Firebase Configuration ---
 const firebaseConfig = {
   apiKey: "AIzaSyAH5XJJ1Dlyb84MONrLiU5OvCWQ29I8NtM",
   authDomain: "chat-app-19d50.firebaseapp.com",
@@ -18,25 +19,49 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-// ... (deleteMessage, deleteChatAndMessages, uploadChatAttachment, listenForChats, sendMessage, listenForMessages functions remain the same)
-export const archiveChat = async (chatId, userId, archiveStatus) => {
-    const chatRef = doc(db, "chats", chatId);
+export const googleProvider = new GoogleAuthProvider(); 
+
+// --- Core Chat Management Functions ---
+
+/**
+ * Handles signing in the user using Google authentication and saves user data to Firestore.
+ */
+export const signInWithGoogle = async () => {
     try {
-        await updateDoc(chatRef, {
-            // Using a map field to store user-specific archive status
-            [`archivedBy.${userId}`]: archiveStatus, 
-        });
-        console.log(`Chat ${chatId} archive status set to ${archiveStatus} for user ${userId}`);
+        const result = await signInWithPopup(auth, googleProvider);
+        const user = result.user;
+        
+        const userDocRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(userDocRef);
+
+        if (!docSnap.exists()) {
+            await setDoc(userDocRef, {
+                uid: user.uid,
+                email: user.email,
+                username: user.email?.split("@")[0],
+                fullName: user.displayName || user.email?.split("@")[0],
+                image: user.photoURL || "", 
+            });
+        }
+        
+        return user;
     } catch (error) {
-        console.error("Error updating archive status:", error);
-        throw error;
+        console.error("Google Sign-in error:", error);
+        throw error; 
     }
 };
+
+/**
+ * Deletes a single message from a chat's message subcollection.
+ */
 export const deleteMessage = async (chatId, messageId) => {
     const messageRef = doc(db, "chats", chatId, "messages", messageId);
     await deleteDoc(messageRef);
 };
 
+/**
+ * Deletes an entire chat document and all its associated messages.
+ */
 export const deleteChatAndMessages = async (chatId) => {
     const chatRef = doc(db, "chats", chatId);
     const messagesRef = collection(db, "chats", chatId, "messages");
@@ -53,6 +78,9 @@ export const deleteChatAndMessages = async (chatId) => {
     await batch.commit();
 };
 
+/**
+ * Uploads a file attachment to Firebase Storage and returns the URL and type.
+ */
 export const uploadChatAttachment = async (file, chatId) => {
     const fileExtension = file.name.split('.').pop();
     const path = `chats/${chatId}/${Date.now()}.${fileExtension}`;
@@ -65,27 +93,9 @@ export const uploadChatAttachment = async (file, chatId) => {
     return { url, type: file.type.startsWith('image/') ? 'image' : 'file' };
 };
 
-
-export const  listenForChats = (setChats) => {
-    const chatsRef = collection(db , "chats"); 
-    const unsubscribe = onSnapshot(chatsRef, (snapshot) => {
-        const chatList = snapshot.docs.map((doc ) => ({
-            id : doc.id, 
-            ...doc.data()  
-        }));
-    
-    const currentUserEmail = auth.currentUser?.email;
-
-    const filteredChats = currentUserEmail
-        ? chatList.filter((chat) => chat.users.some((user) => user.email === currentUserEmail))
-        : [];
-
-    setChats(filteredChats); 
-    });
-    return unsubscribe;
-
-} 
-
+/**
+ * Sends a new message, updating the chat document's last message field.
+ */
 export const sendMessage = async (messageText, chatId, user1, user2, attachment = {}) => {
     const chatRef = doc(db, "chats", chatId);
 
@@ -134,6 +144,69 @@ export const sendMessage = async (messageText, chatId, user1, user2, attachment 
     await addDoc(messageRef, messagePayload);
 };
 
+// --- Archive & Read Status Functions ---
+
+/**
+ * Updates the archived status for a specific user within a chat.
+ */
+export const archiveChat = async (chatId, userId, archiveStatus) => {
+    const chatRef = doc(db, "chats", chatId);
+    try {
+        await updateDoc(chatRef, {
+            [`archivedBy.${userId}`]: archiveStatus, 
+        });
+        console.log(`Chat ${chatId} archive status set to ${archiveStatus} for user ${userId}`);
+    } catch (error) {
+        console.error("Error updating archive status:", error);
+        throw error;
+    }
+};
+
+/**
+ * Resets the unread message count for a specific user in a given chat (marks as read).
+ */
+export const markChatAsRead = async (chatId, userId) => {
+    const chatRef = doc(db, "chats", chatId);
+    const updateField = `unreadCount.${userId}`;
+    
+    try {
+        await updateDoc(chatRef, {
+            [updateField]: 0 // Resetting count to zero
+        });
+        console.log(`Chat ${chatId} marked as read for user ${userId}`);
+    } catch (error) {
+        console.error("Error marking chat as read:", error);
+    }
+};
+
+// --- Real-time Listeners ---
+
+/**
+ * Sets up a real-time listener for all chats the current user is a participant in.
+ */
+export const listenForChats = (setChats) => {
+    const chatsRef = collection(db , "chats"); 
+    const unsubscribe = onSnapshot(chatsRef, (snapshot) => {
+        const chatList = snapshot.docs.map((doc ) => ({
+            id : doc.id, 
+            ...doc.data()  
+        }));
+    
+    const currentUserEmail = auth.currentUser?.email;
+
+    const filteredChats = currentUserEmail
+        ? chatList.filter((chat) => chat.users.some((user) => user.email === currentUserEmail))
+        : [];
+
+    setChats(filteredChats); 
+    });
+    return unsubscribe;
+
+} 
+
+/**
+ * Sets up a real-time listener for messages within a specific chat ID.
+ */
 export const listenForMessages = (chatId, setMessages) => {
     const chatRef = collection(db, "chats", chatId, "messages");
     onSnapshot(chatRef, (snapshot) => {
@@ -144,4 +217,40 @@ export const listenForMessages = (chatId, setMessages) => {
         setMessages(messages);
     });
 };
-export { auth, db, storage, ref, uploadBytes, getDownloadURL, GoogleAuthProvider, signInWithPopup };
+
+/**
+ * Sets up a real-time listener for notifications based on recipient and message type.
+ * @param {function} setNotifications - React state setter.
+ * @param {string} userId - The current user's UID.
+ * @param {string[]} types - An array of notification types to fetch (e.g., ['friend_request', 'archived_update']).
+ */
+export const listenForNotifications = (setNotifications, userId, types = []) => {
+    if (!userId) return () => {};
+
+    const notificationsRef = collection(db, "notifications");
+    let q = query(
+        notificationsRef,
+        where("recipientId", "==", userId),
+        orderBy("timestamp", "desc"),
+        limit(50)
+    );
+    
+    if (types.length > 0) {
+        q = query(q, where("type", "in", types));
+    }
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+        const notificationsList = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+        setNotifications(notificationsList);
+    }, (error) => {
+        console.error("Error listening for notifications:", error);
+    });
+
+    return unsubscribe;
+};
+
+// --- Exports ---
+export { auth, db, storage, ref, uploadBytes, getDownloadURL, addDoc, collection, doc, getDoc, onSnapshot, serverTimestamp, setDoc, updateDoc, deleteDoc, getDocs, writeBatch, query, where, orderBy, limit };

@@ -6,7 +6,7 @@ import { addDoc, collection, doc, getDoc ,onSnapshot, serverTimestamp, setDoc, u
 
 // --- Firebase Configuration ---
 const firebaseConfig = {
-  apiKey: "AIzaSyClsGnBEohLixzC3BThefaTp3o7TJkT_t4",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: "chat-app-19d50.firebaseapp.com",
   projectId: "chat-app-19d50",
   storageBucket: "chat-app-19d50.firebasestorage.app",

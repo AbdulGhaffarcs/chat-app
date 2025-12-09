@@ -50,7 +50,7 @@ const Notifications = ({ onBack }) => {
                     </button>
                     <h1 className="text-xl font-semibold text-gray-800 ml-4">Activity Center</h1>
                     <div className="flex-grow text-center">
-                        <h1 className="text-xl font-semibold text-gray-800">Archived Chats Notificatons</h1>
+                        <h1 className="text-xl font-semibold text-gray-800">Archived Chats Notificaiton</h1>
                     </div>
                 </header>
                     

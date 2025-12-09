@@ -1,4 +1,4 @@
-// src/components/Navlinks.jsx
+// notifiactions setting
 
 import React from "react";
 import logo from "/assets/favicon.png";

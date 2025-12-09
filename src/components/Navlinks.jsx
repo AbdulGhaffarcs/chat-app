@@ -1,7 +1,7 @@
 // src/components/Navlinks.jsx
 
 import React from "react";
-import logo from "/assets/logo.png";
+import logo from "/assets/favicon.png";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase/firebase";
 import { RiArrowDownSFill, RiBardLine, RiChatAiLine, RiFile4Line, RiFolderUserLine, RiLogoutCircleRLine, RiNotificationLine, RiShutDownLine } from "react-icons/ri"; 
@@ -48,7 +48,7 @@ const Navlinks = ({ setCurrentScreen }) => {
             <main className="flex lg:flex-col items-center lg:gap-10 justify-between lg:px-0 w-[100%]">
                 <div className="lex items-start justify-center lg:border-b border-b-1 border-[#ffffffb9] lg:w-[100%] p-2">
                     <span className="flex items-center justify-center ">
-                        <img src={logo} className="w-[80px] h-[auto] object-contain  p-1" alt="" /> 
+                        <img src={logo} className="w-[50px] h-[auto] object-contain  p-1" alt="" /> 
                     </span>
                 </div>
 

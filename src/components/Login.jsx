@@ -121,8 +121,7 @@ const Login = ({ isLogin, setIsLogin }) => {
                 </div>
             </div>
             <footer className="absolute bottom-4 text-gray-400 text-sm">
-                &copy; {new Date().getFullYear()} ChatApp. All rights reserved.
-                Developed by 
+                &copy; {new Date().getFullYear()} ConnectChat. All rights reserved.
             </footer>
             
         </section>

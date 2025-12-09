@@ -120,6 +120,9 @@ const Register = ({ isLogin, setIsLogin }) => {
                 <div className="mt-5 text-center text-gray-400 text-sm">
                     <button onClick={() => setIsLogin(!isLogin)}>Already have an account? Sign In</button>
                 </div>
+                <footer className="absolute bottom-4 text-gray-400 text-sm">
+                &copy; {new Date().getFullYear()} ConnectChat. All rights reserved.
+            </footer>
             </div>
         </section>
     );

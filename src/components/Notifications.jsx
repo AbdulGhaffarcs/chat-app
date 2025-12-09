@@ -19,6 +19,7 @@ const Notifications = ({ onBack }) => {
         
         setIsLoading(true);
         
+        // Ensure these types exactly match the 'type' field in your Firestore documents
         const notificationTypes = ['archived_update', 'friend_request'];
         
         const unsubscribe = listenForNotifications((liveNotifications) => {
@@ -40,8 +41,8 @@ const Notifications = ({ onBack }) => {
         // Default
         return { icon: <RiArchiveLine size={20} />, color: 'text-gray-500' };
     };
+    
     if (isLoading) {
-        // We still need the header for navigation, but the content area will be blank
         return (
             <section className="flex flex-col items-start justify-start h-screen w-full bg-white">
                 <header className="w-full h-[82px] p-4 bg-white border-b border-gray-200 flex items-center">
@@ -49,12 +50,12 @@ const Notifications = ({ onBack }) => {
                         <RiArrowLeftLine className="w-6 h-6 text-gray-500" />
                     </button>
                     <h1 className="text-xl font-semibold text-gray-800 ml-4">Activity Center</h1>
-                    <div className="flex-grow text-center">
-                        <h1 className="text-xl font-semibold text-gray-800">Archived Chats Notificaiton</h1>
-                    </div>
+                    {/* Removed redundant header text from loading state */}
                 </header>
                     
-                {/* Main area is intentionally left blank while loading */}
+                <div className="flex justify-center items-center w-full h-full text-gray-500">
+                    Loading Notifications...
+                </div>
             </section>
         );
     }

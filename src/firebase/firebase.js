@@ -6,7 +6,7 @@ import { addDoc, collection, doc, getDoc ,onSnapshot, serverTimestamp, setDoc, u
 
 // --- Firebase Configuration ---
 const firebaseConfig = {
-  apiKey: "AIzaSyAH5XJJ1Dlyb84MONrLiU5OvCWQ29I8NtM",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: "chat-app-19d50.firebaseapp.com",
   projectId: "chat-app-19d50",
   storageBucket: "chat-app-19d50.firebasestorage.app",
@@ -21,7 +21,6 @@ const storage = getStorage(app);
 
 export const googleProvider = new GoogleAuthProvider(); 
 
-// --- Core Chat Management Functions ---
 
 /**
  * Handles signing in the user using Google authentication and saves user data to Firestore.

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { formatTimestamp } from "../utils/formatTimestamp"; 
-// UPDATED: Added RiArrowLeftLine, RiSendPlaneFill, RiAttachmentLine, RiCloseLine, RiDeleteBinLine, RiReplyLine, RiFileCopyLine 
-import { RiSendPlaneFill, RiAttachmentLine, RiCloseLine, RiDeleteBinLine, RiReplyLine, RiFileCopyLine, RiArrowLeftLine } from "react-icons/ri"; 
+// UPDATED: Imported tick icons (RiCheckLine, RiCheckDoubleLine)
+import { RiSendPlaneFill, RiAttachmentLine, RiCloseLine, RiDeleteBinLine, RiReplyLine, RiFileCopyLine, RiArrowLeftLine, RiCheckLine, RiCheckDoubleLine } from "react-icons/ri"; 
 import { FaFileAlt } from "react-icons/fa";
 import { auth, listenForMessages, sendMessage, uploadChatAttachment, deleteChatAndMessages, deleteMessage } from "../firebase/firebase"; 
 import logo from "/assets/favicon.png";
@@ -75,6 +75,28 @@ const Chatbox = ({ selectedUser, onChatDeleted, onBackToChatlist }) => {
     const user1 = auth?.currentUser;
     const user2 = selectedUser;
     const senderEmail = auth?.currentUser?.email;
+
+    // NEW: Function to display status or last seen
+    const renderLastSeenStatus = (user) => {
+        if (user?.status === 'online') {
+            return (
+                <p className="font-light text-xs text-green-500">
+                    Online
+                </p>
+            );
+        }
+        if (user?.lastSeen) {
+            // Using formatTimestamp with showTime=true for detailed last seen
+            const formattedTime = formatTimestamp(user.lastSeen, true); 
+            return (
+                <p className="font-light text-xs text-gray-500">
+                    Last seen {formattedTime}
+                </p>
+            );
+        }
+        return null;
+    };
+
 
     useEffect(() => {
         listenForMessages(chatId, setMessages);
@@ -230,7 +252,20 @@ const Chatbox = ({ selectedUser, onChatDeleted, onBackToChatlist }) => {
         // Return raw text content, without the separate timestamp
         return <h4>{msg.text}</h4>;
     };
+    
+    // show read/unread status for messages sent by the current user
+    const renderMessageStatus = (msg) => {
+        if (!msg) return null;
+        // message.sender is expected to be a uid (ensure this matches your schema)
+        if (msg.sender !== user1?.uid) return null;
 
+        const isRead = !!msg.isRead; // or use your read-receipts array logic
+        return isRead
+            ? <RiCheckDoubleLine size={14} className="text-blue-500 ml-1" />
+            : <RiCheckLine size={14} className="text-gray-400 ml-1" />;
+    };
+    
+   
     const renderContextMenu = () => {
         if (!contextMenuMsg) return null;
 
@@ -277,7 +312,7 @@ const Chatbox = ({ selectedUser, onChatDeleted, onBackToChatlist }) => {
             {renderContextMenu()}
             
             {selectedUser ? (
-                <section className="flex flex-col items-start justify-start h-screen w-[100%] background-image">
+                <section className="flex flex-col items-start justify-start h-screen w-[100%] back">
                     <header className="w-[100%] h-[82px] m:h-fit p-4 bg-white flex items-center justify-between">
                         <main className="flex items-center gap-3">
                             {/* NEW: Mobile back button */}
@@ -289,7 +324,8 @@ const Chatbox = ({ selectedUser, onChatDeleted, onBackToChatlist }) => {
                             </span>
                             <span>
                                 <h3 className="font-semibold text-[#2A3D39] text-lg">{selectedUser?.fullName }</h3>
-                                <p className="font-light text-[#2A3D39] text-sm">@{selectedUser?.username }</p>
+                                {/* UPDATED: Display Last Seen/Status */}
+                                {renderLastSeenStatus(selectedUser)}
                             </span>
                         </main>
                         <button onClick={handleDeleteChat} className="p-2 text-red-500 hover:text-red-700 disabled:opacity-50" disabled={isUploading}>
@@ -299,7 +335,7 @@ const Chatbox = ({ selectedUser, onChatDeleted, onBackToChatlist }) => {
 
                     <main className="custom-scrollbar relative h-[100vh] w-[100%] flex flex-col justify-between">
                         <section className="px-3 pt-5 b-20 lg:pb-10">
-                            <div ref={scrollRef} className="overflow-auto h-[80vh]">
+                            <div ref={scrollRef} className="chat-messages">
                                 {sortedMessages?.map((msg) => (
                                     <div key={msg.id}> 
                                         {msg?.sender === senderEmail ? (
@@ -308,13 +344,17 @@ const Chatbox = ({ selectedUser, onChatDeleted, onBackToChatlist }) => {
                                                     <div className="flex flex-col items-end">
                                                         <div 
                                                             //  Integrated timestamp and background color
-                                                            className="flex flex-col items-end bg-[#D9F2ED] p-3 rounded-lg shadow-sm cursor-pointer max-w-xs transition-shadow"
+                                                            className="flex flex-col items-end bg-[#D9F2ED] p-3 rounded-lg shadow-sm cursor-pointer max-w-[80%] sm:max-w-[60%] md:max-w-xs transition-shadow"
                                                             onClick={(e) => handleContextMenuOpen(e, msg)}
                                                         >
                                                             {renderMessageContent(msg)}
-                                                             <p className="text-gray-400 text-sx mt-3 text-right">
-                                                            {formatTimestamp(msg?.timestamp, true)}
-                                                        </p>
+                                                            {/* UPDATED: Container for Timestamp and Status */}
+                                                            <div className="flex items-center mt-1">
+                                                                <p className="text-gray-400 text-xs text-right">
+                                                                    {formatTimestamp(msg?.timestamp, true)}
+                                                                </p>
+                                                                {renderMessageStatus(msg)}
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </span>
@@ -325,7 +365,6 @@ const Chatbox = ({ selectedUser, onChatDeleted, onBackToChatlist }) => {
                                                    
                                                     <div>
                                                         <div 
-                                                          
                                                             className="flex flex-col items-start bg-white p-3 rounded-lg shadow-sm cursor-pointer max-w-xs transition-shadow"
                                                             onClick={(e) => handleContextMenuOpen(e, msg)}
                                                         >

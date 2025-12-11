@@ -2,11 +2,13 @@ import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth"; 
 import { getFirestore } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { addDoc, collection, doc, getDoc ,onSnapshot, serverTimestamp, setDoc, updateDoc, deleteDoc, getDocs, writeBatch, query, where, orderBy, limit } from "firebase/firestore";
+// ADDED 'increment' to imports for unread message logic
+import { addDoc, collection, doc, getDoc ,onSnapshot, serverTimestamp, setDoc, updateDoc, deleteDoc, getDocs, writeBatch, query, where, orderBy, limit, increment } from "firebase/firestore";
 
 // --- Firebase Configuration ---
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  // UPDATED: Using VITE Environment Variable to securely load the API key
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY, 
   authDomain: "chat-app-19d50.firebaseapp.com",
   projectId: "chat-app-19d50",
   storageBucket: "chat-app-19d50.firebasestorage.app",
@@ -93,20 +95,21 @@ export const uploadChatAttachment = async (file, chatId) => {
 };
 
 /**
- * Sends a new message, updating the chat document's last message field.
+ * Sends a new message, updating the chat document's last message field 
+ * and INCREMENTING THE UNREAD COUNT for the recipient.
  */
 export const sendMessage = async (messageText, chatId, user1, user2, attachment = {}) => {
     const chatRef = doc(db, "chats", chatId);
 
     const user1Doc = await getDoc(doc(db, "users", user1));
     const user2Doc = await getDoc(doc(db, "users", user2));
-
-    console.log(user1Doc);
-    console.log(user2Doc);
-
     const user1Data = user1Doc.data();
     const user2Data = user2Doc.data();
-
+    
+    // --- Unread Count Logic ---
+    const recipientId = user2; 
+    const unreadField = `unreadCount.${recipientId}`;
+    
     const chatDoc = await getDoc(chatRef);
     
     const lastMessage = attachment.url ? (attachment.type === 'image' ? "Sent an image" : "Sent a file") : messageText;
@@ -116,11 +119,15 @@ export const sendMessage = async (messageText, chatId, user1, user2, attachment 
             users: [user1Data, user2Data],
             lastMessage: lastMessage,
             lastMessageTimestamp: serverTimestamp(),
+            // Set initial unread count for the recipient to 1
+            [unreadField]: increment(1),
         });
     } else {
         await updateDoc(chatRef, {
             lastMessage: lastMessage,
             lastMessageTimestamp: serverTimestamp(),
+            // INCREMENT unread count for the recipient
+            [unreadField]: increment(1),
         });
     }
 
@@ -176,6 +183,21 @@ export const markChatAsRead = async (chatId, userId) => {
     } catch (error) {
         console.error("Error marking chat as read:", error);
     }
+};
+
+/**
+ * Marks specific messages as read within a chat.
+ * @param {string} chatId - The ID of the chat.
+ * @param {string[]} messageIds - Array of message IDs to be marked as read.
+ */
+export const markMessagesAsRead = async (chatId, messageIds = []) => {
+    if (!chatId || !Array.isArray(messageIds) || messageIds.length === 0) return;
+    const batch = writeBatch(db);
+    for (const id of messageIds) {
+        const msgRef = doc(db, "chats", chatId, "messages", id);
+        batch.update(msgRef, { isRead: true, readAt: serverTimestamp() });
+    }
+    await batch.commit();
 };
 
 // --- Real-time Listeners ---
@@ -251,5 +273,5 @@ export const listenForNotifications = (setNotifications, userId, types = []) => 
     return unsubscribe;
 };
 
-// --- Exports ---
-export { auth, db, storage, ref, uploadBytes, getDownloadURL, addDoc, collection, doc, getDoc, onSnapshot, serverTimestamp, setDoc, updateDoc, deleteDoc, getDocs, writeBatch, query, where, orderBy, limit };
+//  Exports
+export { auth, db, storage, ref, uploadBytes, getDownloadURL, addDoc, collection, doc, getDoc, onSnapshot, serverTimestamp, setDoc, updateDoc, deleteDoc, getDocs, writeBatch, query, where, orderBy, limit, increment };

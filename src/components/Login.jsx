@@ -120,10 +120,10 @@ const Login = ({ isLogin, setIsLogin }) => {
                     <button onClick={() => setIsLogin(!isLogin)}>Don't have an account yet? Sign Up</button>
                 </div>
             </div>
-            <footer className="absolute bottom-4 text-gray-400 text-sm">
+            <footer className="bg-white absolute bottom-10 text-black-500 text-sm p-2 rounded-md shadow-md w-[20rem] text-center">
                 &copy; {new Date().getFullYear()} ConnectChat. All rights reserved.
             </footer>
-            
+                        
         </section>
     
     );

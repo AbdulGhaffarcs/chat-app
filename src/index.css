@@ -41,9 +41,3 @@ body {
 .custom-scrollbar::-webkit-scrollbar {
     width: 0;
 }
-
-.chat-messages {
-  height: calc(100vh - 82px - 72px); /* header height (82) + input/footer (72) — adjust if different */
-  overflow: auto;
-  
-}

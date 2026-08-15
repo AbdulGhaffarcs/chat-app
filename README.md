@@ -84,4 +84,4 @@ Contributions are welcome. Open an issue or submit a pull request and describe t
 
 ## License
 
-Add a LICENSE file (for example, MIT) and update this section accordingly.
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.

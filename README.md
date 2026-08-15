@@ -1,16 +1,87 @@
-# React + Vite
+# connectChat
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A minimal React + Vite chat application template with fast HMR, ESLint, and a simple development workflow.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- React with Vite for fast development and builds
+- Hot Module Replacement (HMR)
+- ESLint configuration (extendable for TypeScript)
+- Minimal, opinionated project structure suitable for chat UI development
 
-## React Compiler
+## Prerequisites
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Node.js (>= 16)
+- npm or yarn
 
-## Expanding the ESLint configuration
+## Installation
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+1. Clone the repository
+   ```bash
+   git clone https://github.com/AbdulGhaffarcs/connectChat.git
+   cd connectChat
+   ```
+2. Install dependencies
+   ```bash
+   npm install
+   # or
+   yarn
+   ```
+
+## Development
+
+Start the dev server with HMR:
+```bash
+npm run dev
+# or
+yarn dev
+```
+Open http://localhost:5173 (or the port printed in your terminal).
+
+## Build
+
+Build a production bundle:
+```bash
+npm run build
+# or
+yarn build
+```
+Preview the production build locally:
+```bash
+npm run preview
+# or
+yarn preview
+```
+
+## Linting
+
+This template includes ESLint rules. For production apps we recommend using TypeScript with type-aware linting.
+
+To run lint:
+```bash
+npm run lint
+# or
+yarn lint
+```
+
+## Project Structure (example)
+
+- src/ — application source code
+  - main.jsx — app entry
+  - App.jsx — root component
+  - components/ — reusable components
+  - styles/ — CSS
+- public/ — static assets
+- index.html — Vite HTML entry
+
+## Adding the React Compiler
+
+The React Compiler is not enabled by default due to performance impact. To add it, see: https://react.dev/learn/react-compiler/installation
+
+## Contributing
+
+Contributions are welcome. Open an issue or submit a pull request and describe the changes.
+
+## License
+
+Add a LICENSE file (for example, MIT) and update this section accordingly.
